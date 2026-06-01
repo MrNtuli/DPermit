@@ -1,0 +1,89 @@
+{
+  "info": {
+    "name": "DigiPermit API",
+    "description": "REST API collection for DigiPermit compliance monitoring system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["if (pm.response.code === 200) { pm.collectionVariables.set('token', pm.response.json().data.session.access_token); }"]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"hr@acmeglobal.demo\",\n  \"password\": \"Demo@12345\"\n}" },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        { "name": "Get Profile", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/auth/profile" } },
+        { "name": "Logout", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/auth/logout" } }
+      ]
+    },
+    {
+      "name": "Organisations",
+      "item": [
+        { "name": "List Organisations", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/organisations" } },
+        { "name": "Create Organisation", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test Employer\",\n  \"organisation_type\": \"employer\",\n  \"registration_number\": \"EMP-TEST-001\",\n  \"email\": \"test@employer.demo\"\n}" }, "url": "{{baseUrl}}/organisations" } }
+      ]
+    },
+    {
+      "name": "Foreign Nationals",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/foreign-nationals" } },
+        { "name": "Register", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"full_name\": \"Test Employee\",\n  \"passport_number\": \"FN99999999\",\n  \"nationality\": \"Kenyan\",\n  \"email\": \"test.employee@demo.mail\",\n  \"foreign_national_type\": \"employee\"\n}" }, "url": "{{baseUrl}}/foreign-nationals" } }
+      ]
+    },
+    {
+      "name": "Permits",
+      "item": [
+        { "name": "List Permits", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/permits" } },
+        { "name": "Capture Permit", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"permit_number\": \"WP-2026-TEST-001\",\n  \"foreign_national_id\": \"b2000001-0000-4000-8000-000000000001\",\n  \"permit_type_id\": \"REPLACE_WITH_TYPE_ID\",\n  \"passport_number\": \"FN88291034\",\n  \"issue_date\": \"2026-01-01\",\n  \"expiry_date\": \"2027-01-01\"\n}" }, "url": "{{baseUrl}}/permits" } }
+      ]
+    },
+    {
+      "name": "Verification",
+      "item": [
+        { "name": "Verify by Number", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"permit_number\": \"WP-2024-ACME-001\"\n}" }, "url": "{{baseUrl}}/verify" } },
+        { "name": "Verify QR", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"qr_value\": \"DIGIPERMIT:WP-2024-ACME-001\"\n}" }, "url": "{{baseUrl}}/verify/qr" } },
+        { "name": "Verify RFID", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"rfid_tag\": \"RFID-ACME-001\"\n}" }, "url": "{{baseUrl}}/verify/rfid" } },
+        { "name": "Verification Logs", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/verification-logs" } }
+      ]
+    },
+    {
+      "name": "IoT",
+      "item": [
+        { "name": "Simulate RFID Scan", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"device_id\": \"d4000001-0000-4000-8000-000000000001\",\n  \"scan_type\": \"rfid\",\n  \"rfid_tag\": \"RFID-ACME-001\"\n}" }, "url": "{{baseUrl}}/iot/simulate" } },
+        { "name": "List Devices", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/iot/devices" } },
+        { "name": "Scan Events", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/iot/events" } }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        { "name": "Summary", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/analytics/summary" } },
+        { "name": "Expiry Forecast", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/analytics/expiry" } },
+        { "name": "AI Insights", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/analytics/ai-insights" } },
+        { "name": "Suspicious Activity", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/analytics/suspicious-activity" } }
+      ]
+    },
+    {
+      "name": "Alerts & Notifications",
+      "item": [
+        { "name": "List Alerts", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/alerts" } },
+        { "name": "List Notifications", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/notifications" } }
+      ]
+    }
+  ]
+}

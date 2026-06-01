@@ -1,0 +1,7 @@
+{
+  "name": "digipermit-frontend",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

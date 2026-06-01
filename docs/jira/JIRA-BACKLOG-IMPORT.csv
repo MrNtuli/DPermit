@@ -1,0 +1,21 @@
+Summary,Issue Type,Epic Name,Priority,Sprint,Module,Description
+Create Supabase project and env config,Task,EPIC-1 Project Setup,High,Sprint 1,All,Configure SUPABASE_URL and keys
+Write SQL migrations 001-013,Task,EPIC-2 Database,High,Sprint 1,IS3,All tables FKs RLS
+Seed demo data and users,Task,EPIC-2 Database,High,Sprint 1,IS3,setup-all.sql and npm run seed
+Express MVC project setup,Task,EPIC-3 Backend Core,High,Sprint 1,IP2,Routes controllers services
+Auth and organisation API,Task,EPIC-3 Backend Core,High,Sprint 1,IP2,Login signup CRUD
+Full permit CRUD and lifecycle,Task,EPIC-3 Backend Core,High,Sprint 2,IP2,Validate reject revoke
+Verification engine manual QR RFID,Task,EPIC-4 Verification IoT,High,Sprint 2,IP2/IS3,verification_logs
+IoT simulate endpoint,Task,EPIC-4 Verification IoT,High,Sprint 2,IS3,iot_scan_events
+Daily expiry cron job,Task,EPIC-4 Verification IoT,High,Sprint 2,IS3,BPMN bottleneck automation
+Postman collection,Task,EPIC-4 Verification IoT,Medium,Sprint 2,IP2,API documentation
+Ionic auth and HR pages,Task,EPIC-5 Frontend,High,Sprint 2,IP2,Employer workflow
+All role dashboards,Task,EPIC-5 Frontend,High,Sprint 3,IP2,8 roles navigation
+Analytics SQL views,Task,EPIC-6 Analytics,High,Sprint 3,IS3,7 views for Power BI
+AI insights endpoint,Task,EPIC-6 Analytics,Medium,Sprint 3,IS3,/analytics/ai-insights
+BPMN As-Is and To-Be documentation,Task,EPIC-6 Analytics,High,Sprint 3,IS3,IS3-BPMN-PROCESS-MODELS.md
+Power BI dashboard,Task,EPIC-6 Analytics,High,Sprint 3,IS3,4 pages connected to Supabase
+Packet Tracer topology,Task,EPIC-6 Analytics,Medium,Sprint 3,IS3,Screenshot for report
+Test plan execution,Task,EPIC-7 Testing Delivery,High,Sprint 4,All,TEST-PLAN.md
+Final report and presentation,Task,EPIC-7 Testing Delivery,High,Sprint 4,DS3,Submission documents
+Live demo rehearsal,Task,EPIC-7 Testing Delivery,High,Sprint 4,All,DEMO-SCRIPT.md 23 steps

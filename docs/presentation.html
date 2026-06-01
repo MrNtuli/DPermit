@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DigiPermit — Final Presentation</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: #0d47a1; color: #fff; }
+    .slide { display: none; min-height: 100vh; padding: 48px 64px; flex-direction: column; justify-content: center; }
+    .slide.active { display: flex; }
+    h1 { font-size: 2.4rem; margin: 0 0 16px; }
+    h2 { font-size: 1.5rem; color: #90caf9; margin: 0 0 24px; font-weight: 500; }
+    ul { font-size: 1.25rem; line-height: 1.8; max-width: 900px; }
+    .note { background: rgba(255,255,255,0.1); padding: 16px; border-radius: 8px; margin-top: 24px; font-size: 0.95rem; }
+    .nav { position: fixed; bottom: 24px; right: 24px; display: flex; gap: 8px; }
+    button { padding: 12px 24px; font-size: 1rem; cursor: pointer; border: none; border-radius: 6px; background: #fff; color: #0d47a1; font-weight: 600; }
+    .counter { position: fixed; bottom: 32px; left: 32px; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <div class="slide active"><h1>DigiPermit</h1><h2>Foreign-National Visa & Permit Compliance Monitoring</h2><p>DS3 × IS3 × IP2 Major Project</p><p>Team: [Your Names] · [Date]</p></div>
+  <div class="slide"><h1>Problem</h1><ul><li>Manual spreadsheet tracking of visas/permits</li><li>Missed expiry dates → compliance risk</li><li>No verification audit trail</li></ul><div class="note">DigiPermit monitors compliance — does not issue official government permits.</div></div>
+  <div class="slide"><h1>BPMN As-Is</h1><ul><li>HR → spreadsheet → manual expiry checks → email</li><li><strong>Bottleneck:</strong> manual expiry monitoring</li></ul></div>
+  <div class="slide"><h1>BPMN To-Be</h1><ul><li>Digital capture → validation → daily expiry job</li><li>Notifications + verification + alerts</li><li>IoT scan → API → database</li></ul></div>
+  <div class="slide"><h1>Architecture</h1><ul><li>Ionic Angular (Presentation)</li><li>Node.js Express REST API (Business Logic)</li><li>Supabase PostgreSQL + Auth (Data)</li></ul></div>
+  <div class="slide"><h1>Database — 3NF ERD</h1><ul><li>12 tables, foreign keys, check constraints</li><li>RLS for organisation isolation</li><li>7 analytics views for Power BI</li></ul></div>
+  <div class="slide"><h1>IoT Connectivity</h1><ul><li>Packet Tracer topology (LAN design)</li><li>POST /api/iot/simulate → verification_logs</li><li>Live RFID demo: RFID-ACME-001</li></ul></div>
+  <div class="slide"><h1>API (IP2)</h1><ul><li>40+ REST endpoints, MVC pattern</li><li>JWT auth + role middleware</li><li>Postman collection tested</li></ul></div>
+  <div class="slide"><h1>LIVE DEMO — HR</h1><ul><li>Login: hr@acmeglobal.demo</li><li>Register employee · Capture work visa</li></ul></div>
+  <div class="slide"><h1>LIVE DEMO — Employee</h1><ul><li>james.okonkwo@demo.mail</li><li>My permits · QR code · Notifications</li></ul></div>
+  <div class="slide"><h1>LIVE DEMO — Verification</h1><ul><li>WP-2024-ACME-001 → Valid</li><li>WP-2023-ACME-003 → Expired</li><li>RFID simulation</li></ul></div>
+  <div class="slide"><h1>LIVE DEMO — Admin</h1><ul><li>Alerts · Verification logs · Dashboard</li></ul></div>
+  <div class="slide"><h1>AI & Analytics (IS3)</h1><ul><li>Rule-based suspicious activity detection</li><li>GET /api/analytics/ai-insights</li><li>Power BI dashboard (live)</li></ul></div>
+  <div class="slide"><h1>Agile (DS3)</h1><ul><li>4 sprints over 6 weeks</li><li>GitHub version control</li><li>Sprint reviews documented</li></ul></div>
+  <div class="slide"><h1>Testing</h1><ul><li>Postman API tests</li><li>Role access matrix</li><li>scripts/verify-system.ps1</li></ul></div>
+  <div class="slide"><h1>Thank you</h1><h2>Questions?</h2><p>Demo password: Demo@12345</p></div>
+  <div class="counter"><span id="num">1</span> / <span id="total">17</span></div>
+  <div class="nav"><button onclick="prev()">← Prev</button><button onclick="next()">Next →</button></div>
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    let i = 0;
+    document.getElementById('total').textContent = slides.length;
+    function show() { slides.forEach((s,j) => s.classList.toggle('active', j===i)); document.getElementById('num').textContent = i+1; }
+    function next() { i = Math.min(i+1, slides.length-1); show(); }
+    function prev() { i = Math.max(i-1, 0); show(); }
+    document.addEventListener('keydown', e => { if (e.key==='ArrowRight'||e.key===' ') next(); if (e.key==='ArrowLeft') prev(); });
+  </script>
+</body>
+</html>

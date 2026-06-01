@@ -1,0 +1,63 @@
+-- Seed: Permits (various statuses for demo)
+-- QR values format: DIGIPERMIT:{permit_number}
+INSERT INTO permits (id, permit_number, foreign_national_id, permit_type_id, organisation_id, passport_number, issue_date, expiry_date, qr_code_value, rfid_tag, status, verification_status) VALUES
+  ('c3000001-0000-4000-8000-000000000001', 'WP-2024-ACME-001',
+    'b2000001-0000-4000-8000-000000000001',
+    (SELECT id FROM permit_types WHERE name = 'General work visa' LIMIT 1),
+    'a1000001-0000-4000-8000-000000000001', 'FN88291034',
+    '2024-01-15', '2026-06-15', 'DIGIPERMIT:WP-2024-ACME-001', 'RFID-ACME-001', 'active', 'validated'),
+
+  ('c3000001-0000-4000-8000-000000000002', 'WP-2024-ACME-002',
+    'b2000001-0000-4000-8000-000000000002',
+    (SELECT id FROM permit_types WHERE name = 'Critical-skills work visa' LIMIT 1),
+    'a1000001-0000-4000-8000-000000000001', 'FN77382910',
+    '2024-03-01', CURRENT_DATE + INTERVAL '25 days', 'DIGIPERMIT:WP-2024-ACME-002', 'RFID-ACME-002', 'expiring_soon', 'validated'),
+
+  ('c3000001-0000-4000-8000-000000000003', 'WP-2023-ACME-003',
+    'b2000001-0000-4000-8000-000000000006',
+    (SELECT id FROM permit_types WHERE name = 'General work visa' LIMIT 1),
+    'a1000001-0000-4000-8000-000000000001', 'FN33746556',
+    '2023-06-01', '2025-01-01', 'DIGIPERMIT:WP-2023-ACME-003', 'RFID-ACME-003', 'expired', 'validated'),
+
+  ('c3000001-0000-4000-8000-000000000004', 'WP-2024-ACME-004',
+    'b2000001-0000-4000-8000-000000000001',
+    (SELECT id FROM permit_types WHERE name = 'General work visa' LIMIT 1),
+    'a1000001-0000-4000-8000-000000000001', 'FN88291034',
+    '2023-01-01', '2024-06-01', 'DIGIPERMIT:WP-2024-ACME-004', 'RFID-ACME-004', 'revoked', 'revoked'),
+
+  ('c3000001-0000-4000-8000-000000000005', 'SV-2024-METRO-001',
+    'b2000001-0000-4000-8000-000000000003',
+    (SELECT id FROM permit_types WHERE name = 'Study visa' LIMIT 1),
+    'a1000001-0000-4000-8000-000000000002', 'FN66473829',
+    '2024-02-01', '2027-02-01', 'DIGIPERMIT:SV-2024-METRO-001', 'RFID-METRO-001', 'active', 'validated'),
+
+  ('c3000001-0000-4000-8000-000000000006', 'SV-2024-METRO-002',
+    'b2000001-0000-4000-8000-000000000004',
+    (SELECT id FROM permit_types WHERE name = 'Study visa' LIMIT 1),
+    'a1000001-0000-4000-8000-000000000002', 'FN55564738',
+    '2024-02-01', CURRENT_DATE + INTERVAL '10 days', 'DIGIPERMIT:SV-2024-METRO-002', 'RFID-METRO-002', 'expiring_soon', 'validated'),
+
+  ('c3000001-0000-4000-8000-000000000007', 'VV-2024-METRO-001',
+    'b2000001-0000-4000-8000-000000000007',
+    (SELECT id FROM permit_types WHERE name = 'Visitor visa' LIMIT 1),
+    'a1000001-0000-4000-8000-000000000002', 'FN22837465',
+    '2025-01-01', '2025-12-31', 'DIGIPERMIT:VV-2024-METRO-001', 'RFID-METRO-003', 'active', 'validated'),
+
+  ('c3000001-0000-4000-8000-000000000008', 'MT-2024-CLINIC-001',
+    'b2000001-0000-4000-8000-000000000005',
+    (SELECT id FROM permit_types WHERE name = 'Medical-treatment visa' LIMIT 1),
+    'a1000001-0000-4000-8000-000000000003', 'FN44655647',
+    '2024-08-01', '2025-08-01', 'DIGIPERMIT:MT-2024-CLINIC-001', 'RFID-CLINIC-001', 'pending_verification', 'pending'),
+
+  ('c3000001-0000-4000-8000-000000000009', 'WP-2025-ACME-005',
+    'b2000001-0000-4000-8000-000000000002',
+    (SELECT id FROM permit_types WHERE name = 'General work visa' LIMIT 1),
+    'a1000001-0000-4000-8000-000000000001', 'FN77382910',
+    '2025-01-01', '2025-06-01', 'DIGIPERMIT:WP-2025-ACME-005', 'RFID-ACME-005', 'rejected', 'rejected'),
+
+  ('c3000001-0000-4000-8000-000000000010', 'PR-2024-ACME-001',
+    'b2000001-0000-4000-8000-000000000001',
+    (SELECT id FROM permit_types WHERE name = 'Permanent-residence permit' LIMIT 1),
+    'a1000001-0000-4000-8000-000000000001', 'FN88291034',
+    '2024-06-01', '2029-06-01', 'DIGIPERMIT:PR-2024-ACME-001', 'RFID-ACME-PR1', 'renewal_in_progress', 'validated')
+ON CONFLICT (permit_number) DO NOTHING;

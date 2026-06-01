@@ -1,0 +1,31 @@
+<ion-split-pane contentId="main-content" when="lg">
+  <ion-menu contentId="main-content" type="overlay">
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>DigiPermit</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list lines="none">
+        <ion-item lines="full">
+          <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>{{ profileName }}</h3>
+            <p>{{ auth.profile?.role | titlecase }}</p>
+          </ion-label>
+        </ion-item>
+        <ion-menu-toggle auto-hide="false" *ngFor="let item of menuItems">
+          <ion-item [routerLink]="item.url" routerLinkActive="selected" routerDirection="root" detail="false">
+            <ion-icon [name]="item.icon" slot="start"></ion-icon>
+            <ion-label>{{ item.title }}</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+        <ion-item button (click)="logout()" detail="false">
+          <ion-icon name="log-out-outline" slot="start" color="danger"></ion-icon>
+          <ion-label color="danger">Logout</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+</ion-split-pane>
