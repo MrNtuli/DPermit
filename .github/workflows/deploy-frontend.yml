@@ -49,7 +49,7 @@ jobs:
         run: |
           if [ -z "$API_URL" ]; then
             echo "::warning::DIGIPERMIT_API_URL not set. Using placeholder — set repo variable before demo."
-            API_URL="https://digipermit-api.onrender.com/api"
+            API_URL="https://dpermit.onrender.com/api"
           fi
           cat > src/environments/environment.prod.ts << EOF
           export const environment = {
