@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { jsPDF } from 'jspdf';
 import { DashboardChartData } from '../interfaces/models';
+import { AnalyticsReportScope } from './analytics-report-scope';
 
 export interface AnalyticsReportPdfInput {
   reportTitle?: string;
@@ -11,13 +12,13 @@ export interface AnalyticsReportPdfInput {
   generatedAt: string;
   summary: Record<string, number>;
   chartData: DashboardChartData;
+  scope: AnalyticsReportScope;
   recentLogs?: Array<{
     permits?: { permit_number?: string };
     scan_type?: string;
     created_at?: string;
     verification_result?: string;
   }>;
-  includeChartImages?: boolean;
 }
 
 const SUMMARY_LABELS: Record<string, string> = {
@@ -52,8 +53,9 @@ export class AnalyticsReportPdfService {
   }
 
   build(input: AnalyticsReportPdfInput): jsPDF {
+    const scope = input.scope;
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    let y = this.drawHeader(pdf, input.reportTitle || 'Compliance Analytics Report');
+    let y = this.drawHeader(pdf, input.reportTitle || scope.title);
 
     y = this.section(pdf, 'Report details', y);
     y = this.lines(pdf, [
@@ -65,41 +67,41 @@ export class AnalyticsReportPdfService {
     ].filter(Boolean) as string[], y);
 
     y = this.section(pdf, 'Key metrics', y);
-    y = this.summaryTable(pdf, input.summary, y);
+    y = this.summaryTable(pdf, input.summary, scope, y);
 
     const d = input.chartData;
-    if (d.permit_status?.labels?.length) {
+    if (scope.sections.permitStatus && d.permit_status?.labels?.length) {
       y = this.ensureSpace(pdf, y, 40);
       y = this.section(pdf, 'Permit status distribution', y);
       y = this.keyValueTable(pdf, d.permit_status.labels, d.permit_status.values, y);
     }
 
-    if (d.verification_trend?.labels?.length) {
+    if (scope.sections.verificationTrend && d.verification_trend?.labels?.length) {
       y = this.ensureSpace(pdf, y, 40);
       y = this.section(pdf, `Verification activity (${d.period_days} days)`, y);
-      y = this.trendTable(pdf, d.verification_trend, y);
+      y = this.trendTable(pdf, d.verification_trend, scope, y);
     }
 
-    if (d.verification_results?.labels?.length) {
+    if (scope.sections.verificationResults && d.verification_results?.labels?.length) {
       y = this.ensureSpace(pdf, y, 35);
       y = this.section(pdf, `Verification results (${d.period_days} days)`, y);
       y = this.keyValueTable(pdf, d.verification_results.labels, d.verification_results.values, y);
     }
 
-    if (d.alerts_by_type?.labels?.length) {
+    if (scope.sections.alerts && d.alerts_by_type?.labels?.length) {
       y = this.ensureSpace(pdf, y, 35);
       y = this.section(pdf, 'Alerts by type', y);
       y = this.keyValueTable(pdf, d.alerts_by_type.labels, d.alerts_by_type.values, y);
     }
 
-    if (input.recentLogs?.length) {
+    if (scope.sections.recentLogs && input.recentLogs?.length) {
       y = this.ensureSpace(pdf, y, 45);
-      y = this.section(pdf, 'Recent verifications (filtered sample)', y);
-      y = this.recentLogsTable(pdf, input.recentLogs, y);
+      y = this.section(pdf, 'Recent verifications', y);
+      y = this.recentLogsTable(pdf, input.recentLogs, scope.maxRecentLogs, y);
     }
 
-    if (input.includeChartImages !== false) {
-      this.appendChartImages(pdf, '.charts-section canvas');
+    if (scope.sections.chartImages) {
+      this.appendChartImages(pdf, scope.chartSelectors);
     }
 
     this.drawFooter(pdf);
@@ -162,13 +164,19 @@ export class AnalyticsReportPdfService {
     return y + 4;
   }
 
-  private summaryTable(pdf: jsPDF, summary: Record<string, number>, y: number): number {
-    const rows = Object.entries(SUMMARY_LABELS)
-      .filter(([key]) => summary[key] !== undefined && summary[key] !== null)
-      .map(([key, label]) => [label, String(summary[key] ?? 0)]);
+  private summaryTable(
+    pdf: jsPDF,
+    summary: Record<string, number>,
+    scope: AnalyticsReportScope,
+    y: number,
+  ): number {
+    const rows = scope.summaryKeys
+      .filter(key => SUMMARY_LABELS[key])
+      .filter(key => !scope.omitZeroSummary || (summary[key] ?? 0) > 0)
+      .map(key => [SUMMARY_LABELS[key], String(summary[key] ?? 0)]);
 
     if (!rows.length) {
-      return this.lines(pdf, ['No summary metrics in scope for this role.'], y);
+      return this.lines(pdf, ['No activity recorded for the selected filters in this period.'], y);
     }
     return this.twoColumnTable(pdf, ['Metric', 'Value'], rows, y);
   }
@@ -181,19 +189,40 @@ export class AnalyticsReportPdfService {
   private trendTable(
     pdf: jsPDF,
     trend: DashboardChartData['verification_trend'],
+    scope: AnalyticsReportScope,
     y: number,
   ): number {
-    const rows = trend.labels.map((label, i) => [
+    let rows = trend.labels.map((label, i) => ({
       label,
-      String(trend.total[i] ?? 0),
-      String(trend.valid[i] ?? 0),
-      String(trend.failed[i] ?? 0),
+      total: trend.total[i] ?? 0,
+      valid: trend.valid[i] ?? 0,
+      failed: trend.failed[i] ?? 0,
+    }));
+    if (scope.trendOnlyActiveDays) {
+      rows = rows.filter(r => r.total > 0);
+    }
+    if (scope.maxTrendRows > 0) {
+      rows = rows.slice(-scope.maxTrendRows);
+    }
+    if (!rows.length) {
+      return this.lines(pdf, ['No verification scans in the selected period.'], y);
+    }
+    const tableRows = rows.map(r => [
+      r.label,
+      String(r.total),
+      String(r.valid),
+      String(r.failed),
     ]);
-    return this.table(pdf, ['Date (UTC)', 'Total', 'Valid', 'Failed'], rows, y, [32, 22, 22, 22]);
+    return this.table(pdf, ['Date (UTC)', 'Total', 'Valid', 'Failed'], tableRows, y, [32, 22, 22, 22]);
   }
 
-  private recentLogsTable(pdf: jsPDF, logs: AnalyticsReportPdfInput['recentLogs'], y: number): number {
-    const rows = (logs || []).slice(0, 15).map(l => [
+  private recentLogsTable(
+    pdf: jsPDF,
+    logs: AnalyticsReportPdfInput['recentLogs'],
+    maxRows: number,
+    y: number,
+  ): number {
+    const rows = (logs || []).slice(0, maxRows || 10).map(l => [
       l?.permits?.permit_number || '—',
       this.titleCase(l?.scan_type || ''),
       l?.verification_result?.replace(/_/g, ' ') || '—',
@@ -249,8 +278,17 @@ export class AnalyticsReportPdfService {
     return y + 6;
   }
 
-  private appendChartImages(pdf: jsPDF, selector: string): void {
-    const canvases = Array.from(document.querySelectorAll<HTMLCanvasElement>(selector));
+  private appendChartImages(pdf: jsPDF, selectors: string[]): void {
+    const seen = new Set<HTMLCanvasElement>();
+    const canvases: HTMLCanvasElement[] = [];
+    for (const sel of selectors) {
+      document.querySelectorAll<HTMLCanvasElement>(sel).forEach(c => {
+        if (!seen.has(c)) {
+          seen.add(c);
+          canvases.push(c);
+        }
+      });
+    }
     if (!canvases.length) return;
 
     for (const canvas of canvases) {

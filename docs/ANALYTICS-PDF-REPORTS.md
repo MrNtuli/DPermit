@@ -14,13 +14,18 @@ The file downloads to your device (e.g. `DigiPermit-Analytics-Verification-Offic
 
 ## What the PDF contains
 
-- Report header (DigiPermit branding)
-- User role and applied filters
-- KPI summary table (same metrics as dashboard cards)
-- Data tables for permit status, verification trend, results, and alerts (when in scope)
-- Recent verifications sample (verification dashboard only)
-- Chart appendix (screenshots of visible Chart.js graphs)
-- Footer noting academic simulation and generation time
+Content is **role-specific** (not one long generic report):
+
+| Role | Typical PDF sections |
+|------|----------------------|
+| Verification officer | My scans, success/fail counts, activity days with scans only, results breakdown, up to 8 recent scans, verification charts |
+| Employer / university / clinic | Organisation permit KPIs, permit status, verifications, alerts |
+| Immigration / manager | Review-focused KPIs, permits, verifications, alerts |
+| System admin | Platform-wide KPIs and all chart types in scope |
+
+- Daily activity table lists **only days that had scans** (not empty rows).
+- Zero metrics that do not apply to the role are omitted.
+- Chart images match what that role sees on screen.
 
 ## Demo talking point
 

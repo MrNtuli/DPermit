@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { AnalyticsRefreshService } from '../../services/analytics-refresh.service';
 import { AnalyticsReportPdfService } from '../../services/analytics-report-pdf.service';
+import { getAnalyticsReportScope } from '../../services/analytics-report-scope';
 import { AuthService } from '../../services/auth.service';
 import {
   AnalyticsFilterOptions,
@@ -120,25 +121,25 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
 
     <div class="charts-section charts-busy" *ngIf="data">
       <div class="charts-grid">
-        <div class="panel-card chart-panel" *ngIf="showPermitCharts">
+        <div class="panel-card chart-panel chart-export-permit-status" *ngIf="showPermitCharts">
           <h2 class="panel-title">Permit Status Distribution</h2>
           <p class="chart-note">{{ permitScopeNote }} · Snapshot of permit records (not scan activity)</p>
           <app-chart-canvas *ngIf="permitChart" [config]="permitChart" [revision]="chartRevision"></app-chart-canvas>
           <p class="empty-chart" *ngIf="!permitChart">{{ emptyPermitHint }}</p>
         </div>
-        <div class="panel-card chart-panel">
+        <div class="panel-card chart-panel chart-export-verification-trend">
           <h2 class="panel-title">Verification Activity ({{ data.period_days }} days)</h2>
           <p class="chart-note">Checkpoint scans in the selected period (UTC days) — updates after each verification</p>
           <app-chart-canvas *ngIf="trendChart && hasTrendData" [config]="trendChart" [revision]="chartRevision"></app-chart-canvas>
           <p class="empty-chart" *ngIf="!hasTrendData">{{ emptyVerificationHint }}</p>
         </div>
-        <div class="panel-card chart-panel">
+        <div class="panel-card chart-panel chart-export-verification-results">
           <h2 class="panel-title">Verification Results ({{ data.period_days }} days)</h2>
           <p class="chart-note">Outcome breakdown from checkpoint verifications</p>
           <app-chart-canvas *ngIf="resultChart" [config]="resultChart" [revision]="chartRevision"></app-chart-canvas>
           <p class="empty-chart" *ngIf="!resultChart">{{ emptyVerificationHint }}</p>
         </div>
-        <div class="panel-card chart-panel" *ngIf="showAlerts && showAlertCharts">
+        <div class="panel-card chart-panel chart-export-alerts" *ngIf="showAlerts && showAlertCharts">
           <h2 class="panel-title">{{ alertChartTitle }}</h2>
           <p class="chart-note">Compliance alerts in scope</p>
           <app-chart-canvas *ngIf="alertChart" [config]="alertChart" [revision]="chartRevision"></app-chart-canvas>
@@ -413,7 +414,13 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
       }
       const profile = this.auth.profile;
       const orgName = this.resolveOrganisationName();
+      const scope = getAnalyticsReportScope(profile?.role || '', {
+        showPermitCharts: this.showPermitCharts,
+        showAlertCharts: this.showAlerts && this.showAlertCharts,
+        showRecentLogs: this.showRecentLogs,
+      });
       await this.reportPdf.download({
+        reportTitle: scope.title,
         preparedFor: profile?.full_name || 'DigiPermit user',
         roleLabel: ROLE_LABELS[profile?.role || ''] || profile?.role || 'User',
         organisationName: orgName,
@@ -421,8 +428,8 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
         generatedAt: new Date(this.data.fetched_at || Date.now()).toLocaleString(),
         summary: this.summarySnapshot,
         chartData: this.data,
-        recentLogs: this.showRecentLogs ? this.recentLogs : undefined,
-        includeChartImages: true,
+        scope,
+        recentLogs: scope.sections.recentLogs ? this.recentLogs : undefined,
       });
       (await this.toast.create({
         message: 'PDF downloaded (live data at time of export)',
