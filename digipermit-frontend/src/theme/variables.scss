@@ -1,39 +1,86 @@
-/** DigiPermit design tokens — inspired by compliance dashboard mockup (forest green, clean cards) */
+/**
+ * DigiPermit — Government-tech design tokens
+ * Consistent identity across all roles and surfaces.
+ */
 
 :root {
-  --dp-green-900: #0d2818;
-  --dp-green-800: #1b4332;
-  --dp-green-700: #2d6a4f;
-  --dp-green-600: #40916c;
-  --dp-green-100: #d8f3dc;
-  --dp-surface: #f4f6f8;
+  /* Brand palette */
+  --dp-forest-deep: #0f3d2e;
+  --dp-emerald: #1f7a5a;
+  --dp-emerald-light: #2a9d72;
+  --dp-mint: #eaf6f0;
+  --dp-mint-dark: #d4ebe0;
+  --dp-amber: #f59e0b;
+  --dp-amber-soft: #fef3c7;
+  --dp-danger: #d64545;
+  --dp-danger-soft: #fde8e8;
+
+  /* Neutrals */
+  --dp-surface: #f8fafc;
   --dp-card: #ffffff;
   --dp-border: #e2e8f0;
-  --dp-text: #1a202c;
+  --dp-border-strong: #cbd5e1;
+  --dp-text: #334155;
   --dp-text-muted: #64748b;
-  --dp-sidebar-width: 260px;
+  --dp-text-inverse: #ffffff;
 
-  --ion-color-primary: #1b4332;
-  --ion-color-primary-rgb: 27, 67, 50;
+  /* Legacy aliases (existing components) */
+  --dp-green-900: var(--dp-forest-deep);
+  --dp-green-800: var(--dp-forest-deep);
+  --dp-green-700: var(--dp-emerald);
+  --dp-green-600: var(--dp-emerald-light);
+  --dp-green-100: var(--dp-mint);
+
+  /* Layout */
+  --dp-sidebar-width: 272px;
+  --dp-radius-sm: 8px;
+  --dp-radius-md: 12px;
+  --dp-radius-lg: 16px;
+  --dp-shadow-sm: 0 1px 3px rgba(15, 61, 46, 0.06);
+  --dp-shadow-md: 0 4px 16px rgba(15, 61, 46, 0.08);
+  --dp-shadow-lg: 0 12px 40px rgba(15, 61, 46, 0.1);
+
+  /* Typography */
+  --dp-font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+
+  /* Ionic — primary actions */
+  --ion-font-family: var(--dp-font);
+  --ion-color-primary: #1f7a5a;
+  --ion-color-primary-rgb: 31, 122, 90;
   --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-shade: #183b2c;
-  --ion-color-primary-tint: #325646;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #1b6c4f;
+  --ion-color-primary-tint: #35876b;
 
-  --ion-color-secondary: #40916c;
-  --ion-color-secondary-rgb: 64, 145, 108;
+  --ion-color-secondary: #0f3d2e;
+  --ion-color-secondary-rgb: 15, 61, 46;
   --ion-color-secondary-contrast: #ffffff;
-  --ion-color-secondary-shade: #38805f;
-  --ion-color-secondary-tint: #539c7b;
+  --ion-color-secondary-shade: #0d3628;
+  --ion-color-secondary-tint: #275043;
 
-  --ion-color-tertiary: #52796f;
-  --ion-color-tertiary-rgb: 82, 121, 111;
+  --ion-color-tertiary: #64748b;
+  --ion-color-tertiary-rgb: 100, 116, 139;
   --ion-color-tertiary-contrast: #ffffff;
 
-  --ion-color-success: #2d6a4f;
-  --ion-color-warning: #e9a319;
-  --ion-color-danger: #c0392b;
+  --ion-color-success: #1f7a5a;
+  --ion-color-success-rgb: 31, 122, 90;
+  --ion-color-success-contrast: #ffffff;
+
+  --ion-color-warning: #f59e0b;
+  --ion-color-warning-rgb: 245, 158, 11;
+  --ion-color-warning-contrast: #0f3d2e;
+
+  --ion-color-danger: #d64545;
+  --ion-color-danger-rgb: 214, 69, 69;
+  --ion-color-danger-contrast: #ffffff;
+
+  --ion-color-medium: #94a3b8;
+  --ion-color-dark: #334155;
 
   --ion-background-color: var(--dp-surface);
-  --ion-toolbar-background: #ffffff;
-  --ion-item-background: #ffffff;
+  --ion-text-color: var(--dp-text);
+  --ion-toolbar-background: var(--dp-card);
+  --ion-toolbar-color: var(--dp-text);
+  --ion-item-background: var(--dp-card);
+  --ion-card-background: var(--dp-card);
 }

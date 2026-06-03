@@ -7,7 +7,9 @@ import { UserProfile } from '../../interfaces/models';
   selector: 'app-profile',
   template: `
     <ion-header><ion-toolbar><ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons><ion-title>Profile</ion-title></ion-toolbar></ion-header>
-    <ion-content class="ion-padding">
+    <ion-content class="app-page">
+      <div class="page-inner profile-card-wrap">
+        <app-page-header title="My Profile" subtitle="Account details and organisation access"></app-page-header>
       <ion-card *ngIf="profile">
         <ion-card-header><ion-card-title>{{ profile.full_name }}</ion-card-title><ion-card-subtitle>{{ profile.role | titlecase }}</ion-card-subtitle></ion-card-header>
         <ion-card-content>
@@ -17,6 +19,7 @@ import { UserProfile } from '../../interfaces/models';
           <p><strong>Status:</strong> <app-status-badge [status]="profile.status"></app-status-badge></p>
         </ion-card-content>
       </ion-card>
+      </div>
     </ion-content>
   `,
   standalone: false,
@@ -32,9 +35,9 @@ export class ProfilePage implements OnInit {
 @Component({
   selector: 'app-access-denied',
   template: `
-    <ion-content class="ion-padding ion-text-center">
-      <div style="margin-top:20vh">
-        <ion-icon name="lock-closed-outline" size="large" color="danger"></ion-icon>
+    <ion-content class="app-page">
+      <div class="access-denied-wrap">
+        <ion-icon name="lock-closed-outline"></ion-icon>
         <h2>Access Denied</h2>
         <p>You do not have permission to view this page.</p>
         <ion-button [routerLink]="dashboardRoute">Go to Dashboard</ion-button>

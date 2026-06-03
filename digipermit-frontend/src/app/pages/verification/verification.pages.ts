@@ -58,14 +58,6 @@ import { VerificationResult } from '../../interfaces/models';
       </div>
     </ion-content>
   `,
-  styles: [`
-    .chart-scope-note {
-      font-size: 0.8rem;
-      color: var(--dp-text-muted);
-      margin: -8px 0 16px;
-      padding: 0 4px;
-    }
-  `],
   standalone: false,
 })
 export class VerifyDashboardPage implements OnInit {

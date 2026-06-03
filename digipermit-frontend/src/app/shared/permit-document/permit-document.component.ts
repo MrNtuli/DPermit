@@ -45,13 +45,16 @@ import { Permit } from '../../interfaces/models';
   `,
   styles: [`
     .permit-doc {
-      max-width: 720px; margin: 0 auto; background: #fff; border: 2px solid #2d6a4f;
-      border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-      font-family: 'Segoe UI', system-ui, sans-serif; color: #1a1a1a;
+      max-width: 720px; margin: 0 auto; background: var(--dp-card);
+      border: 2px solid var(--dp-emerald); border-radius: var(--dp-radius-md);
+      overflow: hidden; box-shadow: var(--dp-shadow-lg);
+      font-family: var(--dp-font); color: var(--dp-text);
     }
     .permit-header {
       display: flex; justify-content: space-between; align-items: flex-start;
-      padding: 20px 24px; background: linear-gradient(135deg, #1b4332, #2d6a4f); color: #fff;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, var(--dp-forest-deep), var(--dp-emerald));
+      color: #fff;
     }
     .brand { display: flex; gap: 12px; align-items: center; }
     .brand ion-icon { font-size: 40px; }
@@ -59,26 +62,24 @@ import { Permit } from '../../interfaces/models';
     .brand p { margin: 0; font-size: 0.75rem; opacity: 0.9; }
     .doc-type { font-size: 0.85rem; font-weight: 600; text-align: right; max-width: 140px; }
     .banner {
-      background: #fff3e0; color: #e65100; text-align: center; font-size: 0.7rem;
-      font-weight: 700; letter-spacing: 0.05em; padding: 8px;
+      background: var(--dp-amber-soft); color: #92400e; text-align: center;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; padding: 8px;
     }
     .permit-body { display: flex; flex-wrap: wrap; padding: 24px; gap: 24px; }
     .details { flex: 1; min-width: 240px; }
-    .field { margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
-    .field span { display: block; font-size: 0.7rem; color: #666; text-transform: uppercase; letter-spacing: 0.04em; }
-    .field strong { font-size: 1rem; }
-    .field strong.status { color: #2d6a4f; }
+    .field { margin-bottom: 12px; border-bottom: 1px solid var(--dp-border); padding-bottom: 8px; }
+    .field span { display: block; font-size: 0.7rem; color: var(--dp-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .field strong { font-size: 1rem; color: var(--dp-text); }
+    .field strong.status { color: var(--dp-emerald); }
     .qr-section { text-align: center; min-width: 200px; }
-    .scan-text { font-size: 0.85rem; color: #2d6a4f; font-weight: 600; margin: 0 0 8px; }
-    .rfid { font-family: monospace; font-size: 0.7rem; color: #888; margin-top: 8px; }
+    .scan-text { font-size: 0.85rem; color: var(--dp-emerald); font-weight: 600; margin: 0 0 8px; }
+    .rfid { font-family: monospace; font-size: 0.7rem; color: var(--dp-text-muted); margin-top: 8px; }
     .permit-footer {
-      background: #f5f5f5; padding: 16px 24px; font-size: 0.65rem; color: #666; line-height: 1.5;
+      background: var(--dp-surface); padding: 16px 24px; font-size: 0.65rem;
+      color: var(--dp-text-muted); line-height: 1.5; border-top: 1px solid var(--dp-border);
     }
     .doc-id { margin: 8px 0 0; font-family: monospace; }
-
-    @media print {
-      .permit-doc { box-shadow: none; border: 2px solid #000; max-width: 100%; }
-    }
+    @media print { .permit-doc { box-shadow: none; border: 2px solid #000; max-width: 100%; } }
   `],
   standalone: false,
 })

@@ -1,29 +1,65 @@
-/** Shared layout patterns used across role dashboards */
+/** Shared layout — all role dashboards & management pages */
 
 .app-page {
   --background: var(--dp-surface);
+  font-family: var(--dp-font);
 }
 
 .app-page ion-toolbar {
-  --background: #fff;
+  --background: var(--dp-card);
   --border-color: var(--dp-border);
   --color: var(--dp-text);
 }
 
 .page-inner {
   padding: 16px;
-  max-width: 1280px;
+  max-width: 1320px;
   margin: 0 auto;
 
   @media (min-width: 768px) {
-    padding: 24px;
+    padding: 24px 28px;
   }
 }
 
+/* Page header with gov accent */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 3px solid var(--dp-emerald);
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--dp-forest-deep);
+  letter-spacing: -0.02em;
+}
+
+.page-header p {
+  margin: 8px 0 0;
+  color: var(--dp-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  max-width: 640px;
+}
+
+@media (max-width: 576px) {
+  .page-header h1 {
+    font-size: 1.28rem;
+  }
+}
+
+/* KPI cards */
 .kpi-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 24px;
 
   @media (min-width: 576px) {
@@ -50,23 +86,29 @@
 .kpi-card {
   background: var(--dp-card);
   border: 1px solid var(--dp-border);
-  border-radius: 12px;
-  padding: 16px 18px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-radius: var(--dp-radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--dp-shadow-sm);
+  border-left: 4px solid var(--dp-emerald);
+  transition: box-shadow 0.15s ease;
+
+  &:hover {
+    box-shadow: var(--dp-shadow-md);
+  }
 
   .kpi-label {
-    font-size: 0.72rem;
-    font-weight: 600;
+    font-size: 0.7rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     color: var(--dp-text-muted);
-    margin: 0 0 6px;
+    margin: 0 0 8px;
   }
 
   .kpi-value {
-    font-size: 1.75rem;
+    font-size: 1.85rem;
     font-weight: 700;
-    color: var(--dp-green-800);
+    color: var(--dp-forest-deep);
     margin: 0;
     line-height: 1.1;
   }
@@ -74,88 +116,112 @@
   .kpi-sub {
     font-size: 0.78rem;
     color: var(--dp-text-muted);
-    margin: 6px 0 0;
+    margin: 8px 0 0;
   }
 
-  &.accent-success .kpi-value { color: var(--ion-color-success); }
-  &.accent-warning .kpi-value { color: var(--ion-color-warning); }
-  &.accent-danger .kpi-value { color: var(--ion-color-danger); }
+  &.accent-success {
+    border-left-color: var(--dp-emerald);
+    .kpi-value { color: var(--dp-emerald); }
+  }
+
+  &.accent-warning {
+    border-left-color: var(--dp-amber);
+    .kpi-value { color: #b45309; }
+  }
+
+  &.accent-danger {
+    border-left-color: var(--dp-danger);
+    .kpi-value { color: var(--dp-danger); }
+  }
 }
 
+/* Quick actions */
 .action-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 24px;
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  &.cols-2 {
+    @media (min-width: 576px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 }
 
 .action-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 18px 20px;
+  gap: 16px;
+  padding: 20px 22px;
   background: var(--dp-card);
   border: 1px solid var(--dp-border);
-  border-radius: 12px;
+  border-radius: var(--dp-radius-md);
   text-decoration: none;
   color: var(--dp-text);
-  transition: box-shadow 0.15s, border-color 0.15s;
+  box-shadow: var(--dp-shadow-sm);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 
   ion-icon {
-    font-size: 1.75rem;
-    color: var(--ion-color-primary);
+    font-size: 1.85rem;
+    color: var(--dp-emerald);
     flex-shrink: 0;
+    padding: 10px;
+    background: var(--dp-mint);
+    border-radius: var(--dp-radius-sm);
   }
 
   h3 {
     margin: 0;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--dp-forest-deep);
   }
 
   p {
-    margin: 2px 0 0;
-    font-size: 0.78rem;
+    margin: 4px 0 0;
+    font-size: 0.8rem;
     color: var(--dp-text-muted);
   }
 
-  &:hover, &:focus {
-    border-color: var(--ion-color-primary);
-    box-shadow: 0 4px 12px rgba(27, 67, 50, 0.12);
+  &:hover,
+  &:focus {
+    border-color: var(--dp-emerald);
+    box-shadow: var(--dp-shadow-md);
+    transform: translateY(-1px);
   }
 }
 
+/* Panels */
 .panel-card {
   background: var(--dp-card);
   border: 1px solid var(--dp-border);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: var(--dp-radius-md);
+  padding: 22px 24px;
   margin-bottom: 20px;
+  box-shadow: var(--dp-shadow-sm);
 
   .panel-title {
     margin: 0 0 16px;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    color: var(--dp-text);
+    color: var(--dp-forest-deep);
   }
 }
 
 .data-list {
   background: var(--dp-card);
   border: 1px solid var(--dp-border);
-  border-radius: 12px;
+  border-radius: var(--dp-radius-md);
   overflow: hidden;
-
-  ion-item {
-    --background: transparent;
-    --border-color: var(--dp-border);
-  }
+  box-shadow: var(--dp-shadow-sm);
 }
 
+/* Verification layout */
 .verify-layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -170,9 +236,10 @@
 .verify-panel {
   background: var(--dp-card);
   border: 1px solid var(--dp-border);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: var(--dp-radius-md);
+  padding: 22px 24px;
   min-height: 280px;
+  box-shadow: var(--dp-shadow-sm);
 }
 
 .result-placeholder {
@@ -183,34 +250,249 @@
   text-align: center;
   min-height: 240px;
   color: var(--dp-text-muted);
+  background: var(--dp-mint);
+  border-radius: var(--dp-radius-sm);
+  padding: 24px;
 
   ion-icon {
-    font-size: 4rem;
-    color: var(--dp-green-100);
-    margin-bottom: 12px;
+    font-size: 3.5rem;
+    color: var(--dp-emerald);
+    opacity: 0.5;
+    margin-bottom: 14px;
   }
 
   h3 {
     margin: 0;
     font-size: 1rem;
-    color: var(--dp-text);
+    font-weight: 600;
+    color: var(--dp-forest-deep);
   }
 
   p {
-    margin: 8px 0 0;
-    font-size: 0.85rem;
-    max-width: 280px;
+    margin: 10px 0 0;
+    font-size: 0.88rem;
+    max-width: 300px;
+    line-height: 1.45;
   }
 }
 
 .form-card {
   background: var(--dp-card);
   border: 1px solid var(--dp-border);
-  border-radius: 12px;
-  padding: 8px 4px 16px;
+  border-radius: var(--dp-radius-md);
+  padding: 12px 16px 20px;
   margin-bottom: 16px;
+  box-shadow: var(--dp-shadow-sm);
+}
 
-  ion-item {
-    --background: transparent;
+/* Auth — landing */
+.landing {
+  --background: linear-gradient(
+    165deg,
+    var(--dp-forest-deep) 0%,
+    #164a38 40%,
+    var(--dp-emerald) 100%
+  );
+}
+
+.landing-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--dp-text-inverse);
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.landing .logo {
+  width: 76px;
+  height: 76px;
+  border-radius: var(--dp-radius-lg);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 22px;
+
+  ion-icon {
+    font-size: 2.6rem;
   }
+}
+
+.landing h1 {
+  font-size: 2.35rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.landing .tagline {
+  opacity: 0.92;
+  margin: 12px 0 28px;
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.landing .limitation {
+  display: block;
+  width: 100%;
+  margin-bottom: 28px;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--dp-radius-sm);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.landing .cta {
+  --background: #ffffff;
+  --color: var(--dp-forest-deep);
+  --border-radius: var(--dp-radius-sm);
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.landing .footer-note {
+  font-size: 0.78rem;
+  opacity: 0.7;
+  margin: 0;
+}
+
+/* Auth — login */
+.login-page {
+  --background: var(--dp-surface);
+}
+
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background:
+    radial-gradient(ellipse at top right, var(--dp-mint) 0%, transparent 55%),
+    var(--dp-surface);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 40px 32px 32px;
+  background: var(--dp-card);
+  border-radius: var(--dp-radius-lg);
+  border: 1px solid var(--dp-border);
+  box-shadow: var(--dp-shadow-lg);
+}
+
+.login-brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-brand .logo {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--dp-radius-md);
+  background: var(--dp-mint);
+  border: 1px solid var(--dp-mint-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+
+  ion-icon {
+    font-size: 1.9rem;
+    color: var(--dp-emerald);
+  }
+}
+
+.login-brand h1 {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--dp-forest-deep);
+}
+
+.login-brand p {
+  margin: 8px 0 0;
+  color: var(--dp-text-muted);
+  font-size: 0.92rem;
+}
+
+.login-card .field {
+  --background: var(--dp-surface);
+  border-radius: var(--dp-radius-sm);
+  margin-bottom: 14px;
+  border: 1px solid var(--dp-border);
+}
+
+.login-card .submit-btn {
+  margin-top: 10px;
+  --border-radius: var(--dp-radius-sm);
+  font-weight: 700;
+}
+
+.login-card .demo-hint {
+  display: block;
+  margin-top: 16px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--dp-text-muted);
+}
+
+.login-card .secure-note {
+  margin-top: 22px;
+  font-size: 0.78rem;
+  color: var(--dp-text-muted);
+  text-align: center;
+}
+
+/* Access denied */
+.access-denied-wrap {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+
+  ion-icon {
+    font-size: 4rem;
+    color: var(--dp-danger);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    margin: 0 0 8px;
+    color: var(--dp-forest-deep);
+    font-weight: 700;
+  }
+
+  p {
+    color: var(--dp-text-muted);
+    margin: 0 0 24px;
+  }
+}
+
+/* Profile */
+.profile-card-wrap {
+  max-width: 520px;
+}
+
+.chart-scope-note {
+  font-size: 0.82rem;
+  color: var(--dp-text-muted);
+  margin: -8px 0 18px;
+  padding: 10px 14px;
+  background: var(--dp-mint);
+  border-radius: var(--dp-radius-sm);
+  border-left: 3px solid var(--dp-emerald);
 }

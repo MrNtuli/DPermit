@@ -1,55 +1,65 @@
 /*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
+ * DigiPermit global styles — government-tech interface
  */
 
-/* Core CSS required for Ionic components to work properly */
-@import "@ionic/angular/css/core.css";
+@import "./theme/variables.scss";
 
-/* Basic CSS for apps built with Ionic */
+/* Core Ionic */
+@import "@ionic/angular/css/core.css";
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
-
-/* Optional CSS utils that can be commented out */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+/* Light theme only — consistent gov portal appearance */
+/* @import "@ionic/angular/css/palettes/dark.system.css"; */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
-
+@import "./theme/gov-components.scss";
 @import "./theme/app-layout.scss";
 
+html,
+body {
+  font-family: var(--dp-font);
+  color: var(--dp-text);
+  background: var(--dp-surface);
+}
+
+ion-content {
+  --background: var(--dp-surface);
+}
+
 ion-card {
-  border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--dp-border, #e2e8f0);
+  border-radius: var(--dp-radius-md);
+  box-shadow: var(--dp-shadow-sm);
+  border: 1px solid var(--dp-border);
 }
 
 @media print {
-  ion-menu, ion-menu-button, ion-back-button, .no-print,
-  app-qr-scanner, app-page-header, form {
+  ion-menu,
+  ion-menu-button,
+  ion-back-button,
+  .no-print,
+  app-qr-scanner,
+  app-page-header,
+  form {
     display: none !important;
   }
-  ion-header, ion-toolbar { display: none !important; }
-  ion-content { --background: #fff; }
-  body { background: #fff !important; }
+
+  ion-header,
+  ion-toolbar {
+    display: none !important;
+  }
+
+  ion-content {
+    --background: #fff;
+  }
+
+  body {
+    background: #fff !important;
+  }
 }

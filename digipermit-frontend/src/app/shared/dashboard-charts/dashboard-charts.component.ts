@@ -8,15 +8,15 @@ import {
 } from '../../interfaces/models';
 
 const STATUS_COLORS: Record<string, string> = {
-  active: '#2d6a4f',
-  'expiring soon': '#e9a319',
-  expired: '#c0392b',
-  revoked: '#6c757d',
-  'pending verification': '#52796f',
-  rejected: '#922b21',
+  active: '#1F7A5A',
+  'expiring soon': '#F59E0B',
+  expired: '#D64545',
+  revoked: '#64748B',
+  'pending verification': '#0F3D2E',
+  rejected: '#D64545',
 };
 
-const RESULT_COLORS = ['#2d6a4f', '#40916c', '#e9a319', '#c0392b', '#6c757d', '#1b4332', '#74c69d'];
+const RESULT_COLORS = ['#1F7A5A', '#2a9d72', '#F59E0B', '#D64545', '#64748B', '#0F3D2E', '#94a3b8'];
 
 const DEFAULT_FILTERS: AnalyticsFilters = {
   organisation_id: null,
@@ -33,7 +33,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
     <div class="filter-panel panel-card" *ngIf="filterOptions">
       <div class="filter-header">
         <h2 class="panel-title">Analytics Filters</h2>
-        <p class="filter-subtitle">Charts update automatically. Pick <strong>All organisations</strong> or <strong>Acme Global</strong> to see Sompisi&apos;s scans — not the immigration office.</p>
+        <p class="filter-subtitle">Charts update automatically when you change a filter.</p>
       </div>
       <div class="filter-grid">
         <ion-item lines="none" *ngIf="filterOptions.can_filter_organisation">
@@ -143,10 +143,12 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
     .filter-spinner { width: 22px; height: 22px; }
     .filter-badge {
       font-size: 0.75rem;
-      color: var(--ion-color-primary);
-      background: rgba(45, 106, 79, 0.1);
-      padding: 4px 10px;
+      font-weight: 600;
+      color: var(--dp-emerald);
+      background: var(--dp-mint);
+      padding: 4px 12px;
       border-radius: 999px;
+      border: 1px solid var(--dp-mint-dark);
     }
     .active-filters {
       font-size: 0.78rem;
@@ -403,22 +405,22 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
             {
               label: 'Total scans',
               data: [...d.verification_trend.total],
-              borderColor: '#1b4332',
-              backgroundColor: 'rgba(27, 67, 50, 0.08)',
+            borderColor: '#0F3D2E',
+            backgroundColor: 'rgba(234, 246, 240, 0.8)',
               fill: true,
               tension: 0.3,
             },
             {
               label: 'Valid',
               data: [...d.verification_trend.valid],
-              borderColor: '#40916c',
+              borderColor: '#1F7A5A',
               backgroundColor: 'transparent',
               tension: 0.3,
             },
             {
               label: 'Failed / flagged',
               data: [...d.verification_trend.failed],
-              borderColor: '#c0392b',
+              borderColor: '#D64545',
               backgroundColor: 'transparent',
               tension: 0.3,
             },
@@ -465,7 +467,7 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
           datasets: [{
             label: 'Alerts',
             data: [...d.alerts_by_type.values],
-            backgroundColor: '#e9a319',
+            backgroundColor: '#F59E0B',
             borderRadius: 6,
           }],
         },

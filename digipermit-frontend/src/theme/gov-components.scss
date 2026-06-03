@@ -1,0 +1,203 @@
+/** Government-tech UI components — buttons, forms, tables, toolbars */
+
+/* ── Toolbars & headers ── */
+ion-toolbar {
+  --background: var(--dp-card);
+  --border-color: var(--dp-border);
+  --color: var(--dp-text);
+  --min-height: 56px;
+}
+
+ion-header ion-toolbar {
+  box-shadow: var(--dp-shadow-sm);
+}
+
+ion-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+}
+
+/* ── Buttons (fix contrast on green) ── */
+ion-button {
+  --border-radius: var(--dp-radius-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+ion-button.button-solid.button-primary,
+ion-button.button-solid.button-success {
+  --background: var(--dp-emerald);
+  --background-hover: var(--dp-forest-deep);
+  --background-activated: var(--dp-forest-deep);
+  --color: #ffffff;
+  --color-hover: #ffffff;
+}
+
+ion-button.button-outline.button-primary {
+  --border-color: var(--dp-emerald);
+  --color: var(--dp-emerald);
+}
+
+ion-button.button-clear {
+  --color: var(--dp-emerald);
+}
+
+ion-button.button-solid.button-warning {
+  --color: var(--dp-forest-deep);
+}
+
+ion-button.button-solid.button-danger {
+  --background: var(--dp-danger);
+  --color: #ffffff;
+}
+
+/* ── Form controls ── */
+ion-item {
+  --background: transparent;
+  --border-color: var(--dp-border);
+  --color: var(--dp-text);
+  --highlight-color-focused: var(--dp-emerald);
+  --padding-start: 0;
+  --inner-padding-end: 0;
+}
+
+ion-input,
+ion-select,
+ion-textarea {
+  --color: var(--dp-text);
+  --placeholder-color: var(--dp-text-muted);
+}
+
+ion-select::part(label),
+ion-input::part(label) {
+  color: var(--dp-text-muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.field-item,
+.form-card ion-item {
+  --background: var(--dp-surface);
+  border: 1px solid var(--dp-border);
+  border-radius: var(--dp-radius-sm);
+  margin-bottom: 12px;
+  padding: 4px 12px;
+}
+
+/* ── Cards ── */
+ion-card {
+  border-radius: var(--dp-radius-md);
+  box-shadow: var(--dp-shadow-sm);
+  border: 1px solid var(--dp-border);
+  margin: 0 0 16px;
+}
+
+ion-card-header {
+  padding: 18px 20px 8px;
+}
+
+ion-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--dp-forest-deep);
+}
+
+ion-card-subtitle {
+  color: var(--dp-text-muted);
+  font-size: 0.85rem;
+}
+
+ion-card-content {
+  color: var(--dp-text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* ── Lists / tables ── */
+ion-list {
+  background: transparent;
+  padding: 0;
+}
+
+.data-list ion-item,
+.gov-list ion-item {
+  --background: var(--dp-card);
+  --border-color: var(--dp-border);
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  --min-height: 56px;
+}
+
+.data-list ion-item h3,
+.gov-list ion-item h3 {
+  font-weight: 600;
+  color: var(--dp-text);
+  font-size: 0.95rem;
+}
+
+.data-list ion-item p,
+.gov-list ion-item p {
+  color: var(--dp-text-muted);
+  font-size: 0.82rem;
+}
+
+/* ── Badges ── */
+ion-badge {
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+ion-badge.badge-success,
+ion-badge[color='success'] {
+  background: var(--dp-mint);
+  color: var(--dp-emerald);
+}
+
+ion-badge.badge-warning,
+ion-badge[color='warning'] {
+  background: var(--dp-amber-soft);
+  color: #b45309;
+}
+
+ion-badge.badge-danger,
+ion-badge[color='danger'] {
+  background: var(--dp-danger-soft);
+  color: var(--dp-danger);
+}
+
+ion-badge.badge-medium,
+ion-badge[color='medium'] {
+  background: #f1f5f9;
+  color: var(--dp-text-muted);
+}
+
+/* ── Notes & alerts ── */
+ion-note {
+  color: var(--dp-text-muted);
+}
+
+.limitation-banner {
+  display: block;
+  padding: 12px 16px;
+  background: var(--dp-amber-soft);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--dp-radius-sm);
+  color: #92400e;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+/* ── Spinners ── */
+ion-spinner {
+  color: var(--dp-emerald);
+}
+
+/* ── Menu button ── */
+ion-menu-button {
+  --color: var(--dp-emerald);
+}
