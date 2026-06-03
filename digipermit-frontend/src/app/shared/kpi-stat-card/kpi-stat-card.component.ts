@@ -92,6 +92,8 @@ import { KpiTone, resolveKpiMeta } from './kpi-meta.util';
       letter-spacing: 0.05em;
       color: var(--dp-text-muted, #64748b);
       line-height: 1.3;
+      word-break: normal;
+      overflow-wrap: anywhere;
     }
 
     .tone-info {

@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { ViewWillEnter } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
+import { AnalyticsRefreshService } from '../../services/analytics-refresh.service';
 
 @Component({
   selector: 'app-manager-dashboard',
@@ -17,9 +19,15 @@ import { ApiService } from '../../services/api.service';
   `,
   standalone: false,
 })
-export class ManagerDashboardPage {
+export class ManagerDashboardPage implements ViewWillEnter {
   cards: { l: string; v: number }[] = [];
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private analyticsRefresh: AnalyticsRefreshService,
+  ) {}
+  ionViewWillEnter() {
+    this.analyticsRefresh.requestRefresh();
+  }
   onSummary(data: any) {
     this.cards = [
       { l: 'Total Permits', v: data.total_permits },
@@ -57,8 +65,14 @@ export class ManagerDashboardPage {
   `,
   standalone: false,
 })
-export class ManagerReportsPage {
+export class ManagerReportsPage implements ViewWillEnter {
   insights: any = null;
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private analyticsRefresh: AnalyticsRefreshService,
+  ) {}
+  ionViewWillEnter() {
+    this.analyticsRefresh.requestRefresh();
+  }
   loadAiInsights() { this.api.get('/analytics/ai-insights').subscribe(res => this.insights = res.data); }
 }

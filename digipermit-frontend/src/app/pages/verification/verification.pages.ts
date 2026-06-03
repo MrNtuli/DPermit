@@ -5,6 +5,7 @@ import { ToastController } from '@ionic/angular';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { ApiService } from '../../services/api.service';
+import { AnalyticsRefreshService } from '../../services/analytics-refresh.service';
 import { AuthService } from '../../services/auth.service';
 import { VerificationResult } from '../../interfaces/models';
 
@@ -16,14 +17,18 @@ import { VerificationResult } from '../../interfaces/models';
       <div class="page-inner">
         <app-page-header title="Verification Dashboard" subtitle="Monitor compliance checks and verify permits at checkpoint"></app-page-header>
 
-        <div class="kpi-grid cols-5" *ngIf="stats">
-          <app-kpi-stat label="My Scans (period)" [value]="stats['my_scans_in_period'] || 0"></app-kpi-stat>
+        <div class="kpi-grid cols-3" *ngIf="stats">
+          <app-kpi-stat label="My Scans" [value]="stats['my_scans_in_period'] || 0"></app-kpi-stat>
           <app-kpi-stat label="Successful" [value]="stats['successful_verifications'] || 0"></app-kpi-stat>
-          <app-kpi-stat label="Failed / Invalid" [value]="stats['failed_verifications'] || 0"></app-kpi-stat>
+          <app-kpi-stat label="Failed" [value]="stats['failed_verifications'] || 0"></app-kpi-stat>
         </div>
 
-        <app-dashboard-charts [showAlerts]="false" (summaryChange)="stats = $event"></app-dashboard-charts>
-        <p class="chart-scope-note">Analytics below show <strong>your checkpoint scans only</strong>. Recent Verifications lists your latest activity.</p>
+        <app-dashboard-charts
+          [showAlerts]="false"
+          [showRecentLogs]="true"
+          (summaryChange)="stats = $event">
+        </app-dashboard-charts>
+        <p class="chart-scope-note">Analytics and Recent Verifications use the <strong>same filters</strong> and show <strong>your checkpoint scans only</strong>.</p>
 
         <div class="action-grid">
           <a class="action-card" routerLink="/verification/manual">
@@ -38,29 +43,6 @@ import { VerificationResult } from '../../interfaces/models';
             <ion-icon name="radio-outline"></ion-icon>
             <div><h3>RFID Simulation</h3><p>IoT checkpoint demo</p></div>
           </a>
-        </div>
-
-        <div class="panel-card">
-          <div class="panel-title-row">
-            <h2 class="panel-title">Recent Verifications</h2>
-            <ion-button fill="clear" size="small" (click)="loadRecentLogs()">Refresh</ion-button>
-          </div>
-          <div class="data-list">
-            <ion-item *ngFor="let l of logs" lines="full">
-              <ion-label>
-                <h3>{{ l.permits?.permit_number || 'N/A' }}</h3>
-                <p>{{ l.scan_type | titlecase }} · {{ l.created_at | date:'medium' }}</p>
-              </ion-label>
-              <app-status-badge [status]="l.verification_result"></app-status-badge>
-            </ion-item>
-            <ion-item *ngIf="logsLoading" lines="none">
-              <ion-spinner name="crescent"></ion-spinner>
-              <ion-label>Loading logs…</ion-label>
-            </ion-item>
-            <ion-item *ngIf="!logsLoading && !logs.length" lines="none">
-              <ion-label color="medium">No verifications yet. Run a scan, then tap Refresh.</ion-label>
-            </ion-item>
-          </div>
         </div>
       </div>
     </ion-content>
@@ -77,43 +59,11 @@ import { VerificationResult } from '../../interfaces/models';
   `],
   standalone: false,
 })
-export class VerifyDashboardPage implements OnInit, ViewWillEnter {
-  logs: any[] = [];
+export class VerifyDashboardPage implements ViewWillEnter {
   stats: Record<string, number> | null = null;
-  logsLoading = false;
-  constructor(
-    private api: ApiService,
-    private auth: AuthService,
-    private toast: ToastController,
-  ) {}
-  ngOnInit() {
-    this.loadRecentLogs();
-  }
+  constructor(private analyticsRefresh: AnalyticsRefreshService) {}
   ionViewWillEnter() {
-    this.loadRecentLogs();
-  }
-  loadRecentLogs() {
-    this.logsLoading = true;
-    const params: Record<string, string> = { limit: '10' };
-    const profile = this.auth.profile;
-    if (profile?.role === 'verification_officer' && profile.id) {
-      params['verified_by'] = profile.id;
-    }
-    this.api.get<any[]>('/verification-logs', params).subscribe({
-      next: res => {
-        this.logs = (res.data as any[]) || [];
-        this.logsLoading = false;
-      },
-      error: async () => {
-        this.logsLoading = false;
-        const t = await this.toast.create({
-          message: 'Could not load verification logs. Pull Refresh or try again.',
-          color: 'warning',
-          duration: 3000,
-        });
-        t.present();
-      },
-    });
+    this.analyticsRefresh.requestRefresh();
   }
 }
 
@@ -154,10 +104,18 @@ export class VerifyDashboardPage implements OnInit, ViewWillEnter {
 export class VerifyManualPage {
   form = this.fb.group({ permit_number: ['', Validators.required] });
   result: VerificationResult | null = null;
-  constructor(private api: ApiService, private fb: FormBuilder, private toast: ToastController) {}
+  constructor(
+    private api: ApiService,
+    private fb: FormBuilder,
+    private toast: ToastController,
+    private analyticsRefresh: AnalyticsRefreshService,
+  ) {}
   verify() {
     this.api.post<VerificationResult>('/verify', this.form.value).subscribe({
-      next: res => this.result = res.data,
+      next: res => {
+        this.result = res.data;
+        this.analyticsRefresh.requestRefresh();
+      },
       error: async e => (await this.toast.create({ message: e.error?.message || 'Failed', color: 'danger' })).present(),
     });
   }
@@ -205,7 +163,12 @@ export class VerifyManualPage {
 export class VerifyQrPage {
   form = this.fb.group({ qr_value: ['', Validators.required] });
   result: VerificationResult | null = null;
-  constructor(private api: ApiService, private fb: FormBuilder, private toast: ToastController) {}
+  constructor(
+    private api: ApiService,
+    private fb: FormBuilder,
+    private toast: ToastController,
+    private analyticsRefresh: AnalyticsRefreshService,
+  ) {}
 
   onQrScanned(value: string) {
     this.form.patchValue({ qr_value: value });
@@ -217,6 +180,7 @@ export class VerifyQrPage {
     this.api.post<VerificationResult>('/verify/qr', this.form.value).subscribe({
       next: async res => {
         this.result = res.data;
+        this.analyticsRefresh.requestRefresh();
         const t = await this.toast.create({ message: 'QR verification complete', duration: 2000, color: 'success' });
         t.present();
       },
@@ -246,10 +210,17 @@ export class VerifyQrPage {
 export class VerifyRfidPage implements OnInit {
   form = this.fb.group({ device_id: ['', Validators.required], rfid_tag: ['', Validators.required] });
   devices: any[] = []; result: VerificationResult | null = null;
-  constructor(private api: ApiService, private fb: FormBuilder) {}
+  constructor(
+    private api: ApiService,
+    private fb: FormBuilder,
+    private analyticsRefresh: AnalyticsRefreshService,
+  ) {}
   ngOnInit() { this.api.get<any[]>('/iot/devices').subscribe(res => this.devices = res.data as any[]); }
   verify() {
-    this.api.post<any>('/iot/simulate', { ...this.form.value, scan_type: 'rfid' }).subscribe(res => this.result = res.data);
+    this.api.post<any>('/iot/simulate', { ...this.form.value, scan_type: 'rfid' }).subscribe(res => {
+      this.result = res.data;
+      this.analyticsRefresh.requestRefresh();
+    });
   }
 }
 
@@ -286,7 +257,7 @@ export class VerifyLogsPage implements OnInit, ViewWillEnter {
     this.loadLogs();
   }
   loadLogs() {
-    const params: Record<string, string> = { limit: '100' };
+    const params: Record<string, string> = { limit: '100', days: '90' };
     const profile = this.auth.profile;
     if (profile?.role === 'verification_officer' && profile.id) {
       params['verified_by'] = profile.id;

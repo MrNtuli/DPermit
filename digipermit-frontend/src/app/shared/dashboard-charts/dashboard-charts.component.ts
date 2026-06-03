@@ -1,10 +1,17 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ToastController } from '@ionic/angular';
 import { ChartConfiguration } from 'chart.js';
+import { firstValueFrom, forkJoin, of } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../services/api.service';
+import { AnalyticsRefreshService } from '../../services/analytics-refresh.service';
+import { AnalyticsReportPdfService } from '../../services/analytics-report-pdf.service';
+import { AuthService } from '../../services/auth.service';
 import {
   AnalyticsFilterOptions,
   AnalyticsFilters,
   DashboardChartData,
+  ROLE_LABELS,
 } from '../../interfaces/models';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -33,7 +40,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
     <div class="filter-panel panel-card" *ngIf="filterOptions">
       <div class="filter-header">
         <h2 class="panel-title">Analytics Filters</h2>
-        <p class="filter-subtitle">Charts update automatically when you change a filter.</p>
+        <p class="filter-subtitle">Live data from the database. Export a PDF report matching the filters below.</p>
       </div>
       <div class="filter-grid">
         <ion-item lines="none" *ngIf="filterOptions.can_filter_organisation">
@@ -77,9 +84,15 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
         </ion-item>
       </div>
       <div class="filter-actions">
+        <ion-button size="small" fill="solid" (click)="reload()" [disabled]="loading">Refresh data</ion-button>
+        <ion-button size="small" fill="outline" (click)="downloadPdfReport()" [disabled]="reportGenerating || loading">
+          <ion-icon name="download-outline" slot="start"></ion-icon>
+          Download PDF
+        </ion-button>
         <ion-button size="small" fill="outline" (click)="resetFilters()">Reset filters</ion-button>
         <ion-spinner *ngIf="loading" name="crescent" class="filter-spinner"></ion-spinner>
         <span class="filter-badge" *ngIf="!loading && filtersActive">Filters active</span>
+        <span class="last-updated" *ngIf="lastUpdatedLabel">{{ lastUpdatedLabel }}</span>
       </div>
       <p class="active-filters" *ngIf="activeFilterSummary">{{ activeFilterSummary }}</p>
     </div>
@@ -88,13 +101,13 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
       <div class="charts-grid">
         <div class="panel-card chart-panel" *ngIf="showPermitCharts">
           <h2 class="panel-title">Permit Status Distribution</h2>
-          <p class="chart-note">{{ permitScopeNote }}</p>
+          <p class="chart-note">{{ permitScopeNote }} · Snapshot of permit records (not scan activity)</p>
           <app-chart-canvas *ngIf="permitChart" [config]="permitChart" [revision]="chartRevision"></app-chart-canvas>
           <p class="empty-chart" *ngIf="!permitChart">{{ emptyPermitHint }}</p>
         </div>
         <div class="panel-card chart-panel">
           <h2 class="panel-title">Verification Activity ({{ data.period_days }} days)</h2>
-          <p class="chart-note">Scans in period — uses permit organisation and permit record status when those filters are set</p>
+          <p class="chart-note">Checkpoint scans in the selected period (UTC days) — updates after each verification</p>
           <app-chart-canvas *ngIf="trendChart && hasTrendData" [config]="trendChart" [revision]="chartRevision"></app-chart-canvas>
           <p class="empty-chart" *ngIf="!hasTrendData">{{ emptyVerificationHint }}</p>
         </div>
@@ -112,6 +125,33 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
         </div>
       </div>
     </div>
+    <div class="panel-card recent-logs-panel" *ngIf="showRecentLogs">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">Recent Verifications</h2>
+          <p class="chart-note">Same filters as the charts above (period, scan type, outcome, organisation)</p>
+        </div>
+        <ion-button fill="clear" size="small" (click)="loadRecentLogs()" [disabled]="recentLogsLoading">Refresh</ion-button>
+      </div>
+      <p class="active-filters" *ngIf="activeFilterSummary">{{ activeFilterSummary }}</p>
+      <div class="data-list">
+        <ion-item *ngFor="let l of recentLogs" lines="full">
+          <ion-label>
+            <h3>{{ l.permits?.permit_number || 'N/A' }}</h3>
+            <p>{{ l.scan_type | titlecase }} · {{ l.created_at | date:'medium' }}</p>
+          </ion-label>
+          <app-status-badge [status]="l.verification_result"></app-status-badge>
+        </ion-item>
+        <ion-item *ngIf="recentLogsLoading" lines="none">
+          <ion-spinner name="crescent"></ion-spinner>
+          <ion-label>Loading…</ion-label>
+        </ion-item>
+        <ion-item *ngIf="!recentLogsLoading && !recentLogs.length" lines="none">
+          <ion-label color="medium">{{ emptyRecentLogsHint }}</ion-label>
+        </ion-item>
+      </div>
+    </div>
+
     <ion-spinner *ngIf="loading && !data" name="crescent" class="chart-spinner"></ion-spinner>
   `,
   styles: [`
@@ -141,6 +181,11 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
       flex-wrap: wrap;
     }
     .filter-spinner { width: 22px; height: 22px; }
+    .last-updated {
+      font-size: 0.75rem;
+      color: var(--dp-text-muted);
+      margin-left: auto;
+    }
     .filter-badge {
       font-size: 0.75rem;
       font-weight: 600;
@@ -178,11 +223,21 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
       padding: 40px 16px;
     }
     .chart-spinner { display: block; margin: 24px auto; }
+    .recent-logs-panel { margin-top: 16px; }
+    .recent-logs-panel .panel-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .recent-logs-panel .panel-title { margin: 0; }
   `],
   standalone: false,
 })
 export class DashboardChartsComponent implements OnInit, OnDestroy {
   @Input() showAlerts = true;
+  @Input() showRecentLogs = false;
   @Output() summaryChange = new EventEmitter<Record<string, number>>();
 
   loading = true;
@@ -201,10 +256,31 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
   chartRevision = 0;
   hasTrendData = false;
   activeFilterSummary = '';
+  lastUpdatedLabel = '';
+  recentLogs: any[] = [];
+  recentLogsLoading = false;
+  reportGenerating = false;
+  private summarySnapshot: Record<string, number> = {};
 
   private refreshTimer?: ReturnType<typeof setTimeout>;
+  private pollTimer?: ReturnType<typeof setInterval>;
+  private refreshSub?: Subscription;
+  private readonly pollMs = 30000;
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private analyticsRefresh: AnalyticsRefreshService,
+    private auth: AuthService,
+    private reportPdf: AnalyticsReportPdfService,
+    private toast: ToastController,
+  ) {}
+
+  get emptyRecentLogsHint(): string {
+    if (this.filtersActive || this.filters.days !== 14) {
+      return 'No scans match the current filters. Try Reset filters or a longer period.';
+    }
+    return 'No verifications in this period. Run a scan, then tap Refresh data above.';
+  }
 
   get showPermitCharts(): boolean {
     return this.filterOptions?.can_view_permit_charts !== false;
@@ -255,6 +331,8 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.syncSelectValuesFromFilters();
+    this.refreshSub = this.analyticsRefresh.refresh$.subscribe(() => this.reload());
+    this.pollTimer = setInterval(() => this.reload(false), this.pollMs);
     this.api.get<AnalyticsFilterOptions>('/analytics/filter-options').subscribe({
       next: res => {
         this.filterOptions = res.data;
@@ -273,6 +351,103 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.refreshTimer) clearTimeout(this.refreshTimer);
+    if (this.pollTimer) clearInterval(this.pollTimer);
+    this.refreshSub?.unsubscribe();
+  }
+
+  /** Reload charts and KPI summary from the API. */
+  reload(showLoading = true) {
+    this.loadData(showLoading);
+  }
+
+  /** Pull latest analytics from the API, then download a PDF snapshot. */
+  async downloadPdfReport() {
+    this.reportGenerating = true;
+    const busy = await this.toast.create({
+      message: 'Fetching live data for PDF…',
+      duration: 20000,
+    });
+    await busy.present();
+    try {
+      await this.syncLiveData();
+      await new Promise(r => setTimeout(r, 400));
+      if (!this.data) {
+        throw new Error('No analytics data');
+      }
+      const profile = this.auth.profile;
+      const orgName = this.resolveOrganisationName();
+      await this.reportPdf.download({
+        preparedFor: profile?.full_name || 'DigiPermit user',
+        roleLabel: ROLE_LABELS[profile?.role || ''] || profile?.role || 'User',
+        organisationName: orgName,
+        filtersSummary: this.activeFilterSummary.replace(/^Showing:\s*/i, '') || 'Default filters',
+        generatedAt: new Date(this.data.fetched_at || Date.now()).toLocaleString(),
+        summary: this.summarySnapshot,
+        chartData: this.data,
+        recentLogs: this.showRecentLogs ? this.recentLogs : undefined,
+        includeChartImages: true,
+      });
+      (await this.toast.create({
+        message: 'PDF downloaded (live data at time of export)',
+        color: 'success',
+        duration: 3000,
+      })).present();
+    } catch {
+      (await this.toast.create({
+        message: 'Could not generate PDF. Check connection and try again.',
+        color: 'danger',
+        duration: 3500,
+      })).present();
+    } finally {
+      await busy.dismiss();
+      this.reportGenerating = false;
+    }
+  }
+
+  /** Fresh read from API — same filters as on screen. */
+  private async syncLiveData(): Promise<void> {
+    const params = this.toQueryParams(this.filters);
+    const logParams: Record<string, string> = { ...params, limit: '10' };
+    const profile = this.auth.profile;
+    if (profile?.role === 'verification_officer' && profile.id) {
+      logParams['verified_by'] = profile.id;
+    }
+
+    const logs$ = this.showRecentLogs
+      ? this.api.get<any[]>('/verification-logs', logParams)
+      : of({ success: true, data: [] as any[] });
+
+    const { charts, summary, logs } = await firstValueFrom(
+      forkJoin({
+        charts: this.api.get<DashboardChartData>('/analytics/charts', params),
+        summary: this.api.get<Record<string, number | string>>('/analytics/summary', params),
+        logs: logs$,
+      }),
+    );
+
+    this.data = charts.data;
+    this.buildCharts();
+    this.updateActiveFilterSummary(charts.data);
+    this.setLastUpdated(charts.data.fetched_at);
+    this.chartRevision++;
+
+    const payload = { ...summary.data };
+    if (typeof payload['fetched_at'] === 'string') {
+      this.setLastUpdated(payload['fetched_at'] as string);
+      delete payload['fetched_at'];
+    }
+    this.summarySnapshot = payload as Record<string, number>;
+    this.summaryChange.emit(this.summarySnapshot);
+
+    if (this.showRecentLogs) {
+      this.recentLogs = (logs.data as any[]) || [];
+    }
+  }
+
+  private resolveOrganisationName(): string | undefined {
+    if (!this.filterOptions || !this.data?.scoped_organisation_id) return undefined;
+    const org = this.filterOptions.organisations.find(o => o.id === this.data?.scoped_organisation_id);
+    return org?.name;
   }
 
   onOrganisationChange(value: string) {
@@ -335,24 +510,59 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
     );
   }
 
-  private loadData() {
-    this.loading = true;
+  loadRecentLogs() {
+    if (!this.showRecentLogs) return;
+    this.recentLogsLoading = true;
+    const params: Record<string, string> = { ...this.toQueryParams(this.filters), limit: '10' };
+    const profile = this.auth.profile;
+    if (profile?.role === 'verification_officer' && profile.id) {
+      params['verified_by'] = profile.id;
+    }
+    this.api.get<any[]>('/verification-logs', params).subscribe({
+      next: res => {
+        this.recentLogs = (res.data as any[]) || [];
+        this.recentLogsLoading = false;
+      },
+      error: () => { this.recentLogsLoading = false; },
+    });
+  }
+
+  private loadData(showLoading = true) {
+    if (showLoading) this.loading = true;
     const params = this.toQueryParams(this.filters);
+    if (this.showRecentLogs) this.loadRecentLogs();
 
     this.api.get<DashboardChartData>('/analytics/charts', params).subscribe({
       next: res => {
         this.data = res.data;
         this.buildCharts();
         this.updateActiveFilterSummary(res.data);
+        this.setLastUpdated(res.data.fetched_at);
         this.chartRevision++;
         this.loading = false;
       },
       error: () => { this.loading = false; },
     });
 
-    this.api.get<Record<string, number>>('/analytics/summary', params).subscribe({
-      next: res => this.summaryChange.emit(res.data),
+    this.api.get<Record<string, number | string>>('/analytics/summary', params).subscribe({
+      next: res => {
+        const payload = { ...res.data };
+        if (typeof payload['fetched_at'] === 'string') {
+          this.setLastUpdated(payload['fetched_at'] as string);
+          delete payload['fetched_at'];
+        }
+        this.summarySnapshot = payload as Record<string, number>;
+        this.summaryChange.emit(this.summarySnapshot);
+      },
     });
+  }
+
+  private setLastUpdated(iso?: string) {
+    if (!iso) return;
+    const d = new Date(iso);
+    this.lastUpdatedLabel = Number.isNaN(d.getTime())
+      ? ''
+      : `Last updated ${d.toLocaleTimeString()}`;
   }
 
   private updateActiveFilterSummary(data: DashboardChartData) {

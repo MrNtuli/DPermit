@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { ToastController } from '@ionic/angular';
+import { ToastController, ViewWillEnter } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
+import { AnalyticsRefreshService } from '../../services/analytics-refresh.service';
 
 @Component({
   selector: 'app-employer-dashboard',
@@ -23,10 +24,16 @@ import { ApiService } from '../../services/api.service';
   `,
   standalone: false,
 })
-export class EmployerDashboardPage {
+export class EmployerDashboardPage implements ViewWillEnter {
   stats: any = null;
   cards: { l: string; v: number }[] = [];
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private analyticsRefresh: AnalyticsRefreshService,
+  ) {}
+  ionViewWillEnter() {
+    this.analyticsRefresh.requestRefresh();
+  }
   onSummary(data: any) {
     this.stats = data;
     this.cards = [
@@ -50,9 +57,10 @@ export class EmployerDashboardPage {
       <ion-card *ngIf="showForm">
         <ion-card-header><ion-card-title>Register Employee</ion-card-title></ion-card-header>
         <ion-card-content>
+          <p class="form-hint">Step 1 of 2 — Enter details from the person&apos;s <strong>passport</strong> (travel document). No permit number yet.</p>
           <form [formGroup]="form" (ngSubmit)="register()">
             <ion-item><ion-input formControlName="full_name" label="Full Name" labelPlacement="stacked"></ion-input></ion-item>
-            <ion-item><ion-input formControlName="passport_number" label="Passport Number" labelPlacement="stacked"></ion-input></ion-item>
+            <ion-item><ion-input formControlName="passport_number" label="Passport Number" labelPlacement="stacked" placeholder="e.g. FN88291034 — as printed on passport"></ion-input></ion-item>
             <ion-item><ion-input formControlName="nationality" label="Nationality" labelPlacement="stacked"></ion-input></ion-item>
             <ion-item><ion-input formControlName="email" label="Email" labelPlacement="stacked"></ion-input></ion-item>
             <ion-item><ion-select formControlName="foreign_national_type" label="Type" labelPlacement="stacked"><ion-select-option value="employee">Employee</ion-select-option><ion-select-option value="contractor">Contractor</ion-select-option></ion-select></ion-item>
@@ -68,6 +76,14 @@ export class EmployerDashboardPage {
       </ion-list>
     </ion-content>
   `,
+  styles: [`
+    .form-hint {
+      font-size: 0.85rem;
+      color: var(--dp-text-muted, #64748b);
+      margin: 0 0 12px;
+      line-height: 1.45;
+    }
+  `],
   standalone: false,
 })
 export class EmployerEmployeesPage implements OnInit {
@@ -99,11 +115,12 @@ export class EmployerEmployeesPage implements OnInit {
       <ion-card *ngIf="showForm">
         <ion-card-header><ion-card-title>Capture Work Visa</ion-card-title></ion-card-header>
         <ion-card-content>
+          <p class="form-hint">Step 2 of 2 — Enter details from the official <strong>visa / work permit</strong> (as issued by immigration — DigiPermit only monitors compliance).</p>
           <form [formGroup]="form" (ngSubmit)="capture()">
-            <ion-item><ion-select formControlName="foreign_national_id" label="Employee" labelPlacement="stacked"><ion-select-option *ngFor="let e of employees" [value]="e.id">{{ e.full_name }}</ion-select-option></ion-select></ion-item>
+            <ion-item><ion-select formControlName="foreign_national_id" label="Employee" labelPlacement="stacked" (ionChange)="onEmployeeChange($event.detail.value)"><ion-select-option *ngFor="let e of employees" [value]="e.id">{{ e.full_name }}</ion-select-option></ion-select></ion-item>
             <ion-item><ion-select formControlName="permit_type_id" label="Permit Type" labelPlacement="stacked"><ion-select-option *ngFor="let t of types" [value]="t.id">{{ t.name }}</ion-select-option></ion-select></ion-item>
-            <ion-item><ion-input formControlName="permit_number" label="Permit Number" labelPlacement="stacked"></ion-input></ion-item>
-            <ion-item><ion-input formControlName="passport_number" label="Passport Number" labelPlacement="stacked"></ion-input></ion-item>
+            <ion-item><ion-input formControlName="permit_number" label="Permit Number" labelPlacement="stacked" placeholder="e.g. WP-2024-ACME-001 — from visa label"></ion-input></ion-item>
+            <ion-item><ion-input formControlName="passport_number" label="Passport Number" labelPlacement="stacked" placeholder="Filled from employee record"></ion-input></ion-item>
             <ion-item><ion-input formControlName="issue_date" type="date" label="Issue Date" labelPlacement="stacked"></ion-input></ion-item>
             <ion-item><ion-input formControlName="expiry_date" type="date" label="Expiry Date" labelPlacement="stacked"></ion-input></ion-item>
             <ion-button expand="block" type="submit">Capture Record</ion-button>
@@ -125,6 +142,14 @@ export class EmployerEmployeesPage implements OnInit {
       </ion-list>
     </ion-content>
   `,
+  styles: [`
+    .form-hint {
+      font-size: 0.85rem;
+      color: var(--dp-text-muted, #64748b);
+      margin: 0 0 12px;
+      line-height: 1.45;
+    }
+  `],
   standalone: false,
 })
 export class EmployerPermitsPage implements OnInit {
@@ -139,6 +164,12 @@ export class EmployerPermitsPage implements OnInit {
     this.api.get<any[]>('/permits').subscribe(res => this.permits = res.data as any[]);
     this.api.get<any[]>('/foreign-nationals').subscribe(res => this.employees = res.data as any[]);
     this.api.get<any[]>('/permit-types').subscribe(res => this.types = res.data as any[]);
+  }
+  onEmployeeChange(employeeId: string) {
+    const emp = this.employees.find(e => e.id === employeeId);
+    if (emp?.passport_number) {
+      this.form.patchValue({ passport_number: emp.passport_number });
+    }
   }
   capture() {
     this.api.post('/permits', this.form.value).subscribe({

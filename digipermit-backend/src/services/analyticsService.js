@@ -30,14 +30,27 @@ function parseAnalyticsFilters(query = {}) {
   };
 }
 
+/** UTC calendar days so trend buckets match verification_logs timestamps. */
 function lastNDays(n) {
   const days = [];
+  const now = new Date();
   for (let i = n - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    days.push(d.toISOString().split('T')[0]);
+    const d = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() - i,
+    ));
+    days.push(d.toISOString().slice(0, 10));
   }
   return days;
+}
+
+function isSuccessfulVerification(result) {
+  return result === 'valid' || result === 'expiring_soon';
+}
+
+function isFailedVerification(result) {
+  return ['expired', 'revoked', 'not_found', 'suspicious', 'rejected', 'pending_verification'].includes(result);
 }
 
 async function getFilterOptions(profile) {
@@ -196,7 +209,7 @@ async function getChartData(profile, query = {}) {
     const d = l.created_at.split('T')[0];
     if (!trendMap[d]) return;
     trendMap[d].total++;
-    if (l.verification_result === 'valid' || l.verification_result === 'expiring_soon') {
+    if (isSuccessfulVerification(l.verification_result)) {
       trendMap[d].valid++;
     } else {
       trendMap[d].failed++;
@@ -233,6 +246,7 @@ async function getChartData(profile, query = {}) {
   }
 
   return {
+    fetched_at: new Date().toISOString(),
     permit_status: { labels: permitStatusLabels, values: permitStatusValues },
     verification_trend: {
       labels: days.map(d => d.slice(5)),
@@ -280,8 +294,8 @@ async function getSummary(profile, query = {}) {
   if (isCheckpointRole(profile.role)) {
     const since = `${lastNDays(filters.days)[0]}T00:00:00.000Z`;
     const logs = await fetchVerificationLogs(filters, null, since, profile);
-    const successful = logs.filter(v => v.verification_result === 'valid' || v.verification_result === 'expiring_soon').length;
-    const failed = logs.filter(v => ['expired', 'revoked', 'not_found', 'suspicious', 'rejected'].includes(v.verification_result)).length;
+    const successful = logs.filter(v => isSuccessfulVerification(v.verification_result)).length;
+    const failed = logs.filter(v => isFailedVerification(v.verification_result)).length;
     return {
       total_organisations: 0,
       total_users: 0,
@@ -297,6 +311,7 @@ async function getSummary(profile, query = {}) {
       failed_verifications: failed,
       unresolved_alerts: 0,
       my_scans_in_period: logs.length,
+      fetched_at: new Date().toISOString(),
       applied_filters: { days: filters.days, scan_type: filters.scan_type, verification_result: filters.verification_result },
     };
   }
@@ -333,10 +348,11 @@ async function getSummary(profile, query = {}) {
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 200);
 
-  const successful = recentVerifications?.filter(v => v.verification_result === 'valid').length || 0;
-  const failed = recentVerifications?.filter(v => ['expired', 'revoked', 'not_found', 'suspicious'].includes(v.verification_result)).length || 0;
+  const successful = recentVerifications?.filter(v => isSuccessfulVerification(v.verification_result)).length || 0;
+  const failed = recentVerifications?.filter(v => isFailedVerification(v.verification_result)).length || 0;
 
   return {
+    fetched_at: new Date().toISOString(),
     total_organisations: totalOrganisations,
     total_users: totalUsers,
     total_foreign_nationals: totalForeignNationals,

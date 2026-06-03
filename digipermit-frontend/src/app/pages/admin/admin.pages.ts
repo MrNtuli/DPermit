@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { ViewWillEnter } from '@ionic/angular';
+import { AnalyticsRefreshService } from '../../services/analytics-refresh.service';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
@@ -14,7 +16,7 @@ import {
     <ion-header><ion-toolbar><ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons><ion-title>Dashboard</ion-title></ion-toolbar></ion-header>
     <ion-content class="app-page">
       <div class="page-inner">
-        <app-page-header title="Platform Overview" subtitle="Global compliance monitoring statistics"></app-page-header>
+        <app-page-header title="Platform Overview" subtitle="KPI cards show current inventory; verification charts use the period and filters below"></app-page-header>
         <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
         <div class="kpi-grid" *ngIf="!loading && stats">
           <app-kpi-stat *ngFor="let s of statCards" [label]="s.label" [value]="s.value"></app-kpi-stat>
@@ -25,12 +27,19 @@ import {
   `,
   standalone: false,
 })
-export class AdminDashboardPage implements OnInit {
+export class AdminDashboardPage implements OnInit, ViewWillEnter {
   stats: Record<string, number> | null = null;
   statCards: { label: string; value: number }[] = [];
   loading = true;
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private analyticsRefresh: AnalyticsRefreshService,
+  ) {}
+
+  ionViewWillEnter() {
+    this.analyticsRefresh.requestRefresh();
+  }
 
   onSummary(data: Record<string, number>) {
     this.stats = data;
@@ -300,7 +309,7 @@ export class AdminVerificationLogsPage implements OnInit {
 
   loadLogs() {
     this.loading = true;
-    const params: Record<string, string> = { limit: '100' };
+    const params: Record<string, string> = { limit: '100', days: '90' };
     if (this.filterScanType) params['scan_type'] = this.filterScanType;
     if (this.filterResult) params['verification_result'] = this.filterResult;
     this.api.get<any[]>('/verification-logs', params).subscribe({
@@ -449,7 +458,7 @@ export class AdminUsersPage implements OnInit {
     <ion-content class="ion-padding">
       <app-page-header
         title="Provision User Account"
-        subtitle="Assign role and organisation. For foreign nationals, link an existing employee record (FR-4.3).">
+        subtitle="Login accounts only — you do not enter permit numbers here. For a foreign national login, HR must register the person and capture their visa first; then link that record below.">
       </app-page-header>
       <form [formGroup]="form" (ngSubmit)="submit()">
         <ion-item><ion-input formControlName="full_name" label="Full Name" labelPlacement="stacked"></ion-input></ion-item>
@@ -473,8 +482,11 @@ export class AdminUsersPage implements OnInit {
             </ion-select-option>
           </ion-select>
         </ion-item>
-        <ion-note class="hint" *ngIf="isForeignNational && !foreignNationals.length">
-          No unlinked employee records for this organisation. HR must register the employee first.
+        <ion-note class="hint" *ngIf="isForeignNational">
+          Passport and permit numbers come from the employee&apos;s physical documents when HR captures the visa (Employer → Foreign Employees, then Permit Records). Here you only link that record so they can log in.
+        </ion-note>
+        <ion-note class="hint warn" *ngIf="isForeignNational && !foreignNationals.length">
+          No unlinked records for this organisation. Ask HR to register the employee and capture a permit first.
         </ion-note>
         <ion-button expand="block" type="submit" [disabled]="form.invalid || submitting" class="ion-margin-top">
           Create User Account
@@ -482,7 +494,10 @@ export class AdminUsersPage implements OnInit {
       </form>
     </ion-content>
   `,
-  styles: [`.hint { display:block; padding:8px 16px; font-size:0.85rem; color:var(--ion-color-medium); }`],
+  styles: [`
+    .hint { display:block; padding:8px 16px; font-size:0.85rem; color:var(--ion-color-medium); line-height:1.45; }
+    .hint.warn { color: var(--ion-color-warning-shade, #b45309); }
+  `],
   standalone: false,
 })
 export class AdminCreateUserPage implements OnInit {
@@ -620,4 +635,9 @@ export class AdminCreateUserPage implements OnInit {
   `,
   standalone: false,
 })
-export class AdminAnalyticsPage {}
+export class AdminAnalyticsPage implements ViewWillEnter {
+  constructor(private analyticsRefresh: AnalyticsRefreshService) {}
+  ionViewWillEnter() {
+    this.analyticsRefresh.requestRefresh();
+  }
+}

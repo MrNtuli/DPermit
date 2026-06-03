@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { ToastController } from '@ionic/angular';
+import { ToastController, ViewWillEnter } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
+import { AnalyticsRefreshService } from '../../services/analytics-refresh.service';
 
 @Component({
   selector: 'app-immigration-dashboard',
@@ -20,9 +21,15 @@ import { ApiService } from '../../services/api.service';
   styles: [`.sim-note { display:block; margin-bottom:16px; padding:10px 12px; background:#fff8e1; border-radius:8px; font-size:0.85rem; }`],
   standalone: false,
 })
-export class ImmigrationDashboardPage {
+export class ImmigrationDashboardPage implements ViewWillEnter {
   cards: { l: string; v: number }[] = [];
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private analyticsRefresh: AnalyticsRefreshService,
+  ) {}
+  ionViewWillEnter() {
+    this.analyticsRefresh.requestRefresh();
+  }
   onSummary(data: any) {
     this.cards = [
       { l: 'Pending Verification', v: data.pending_verification }, { l: 'Renewal Requests', v: data.renewal_requests },

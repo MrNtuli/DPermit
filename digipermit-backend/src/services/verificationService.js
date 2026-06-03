@@ -1,4 +1,29 @@
 const { supabaseAdmin } = require('../config/supabase');
+const {
+  organisationFilterFor,
+  canSelectOrganisationInAnalytics,
+} = require('../utils/accessScope');
+
+function lastNDaysUTC(n) {
+  const days = [];
+  const now = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() - i,
+    ));
+    days.push(d.toISOString().slice(0, 10));
+  }
+  return days;
+}
+
+function resolveLogOrgFilter(profile, requestedOrgId) {
+  const forced = organisationFilterFor(profile);
+  if (forced) return forced;
+  if (requestedOrgId && canSelectOrganisationInAnalytics(profile)) return requestedOrgId;
+  return null;
+}
 const env = require('../config/env');
 const { computeVerificationResult, daysUntilExpiry } = require('../utils/expiryCalculator');
 const { maskPassport } = require('../utils/maskPassport');
@@ -229,15 +254,33 @@ function applyLogScope(query, profile, filters = {}) {
 }
 
 async function getLogs(profile, filters = {}) {
-  let query = supabaseAdmin.from('verification_logs').select(`
-    *,
+  const days = parseInt(filters.days, 10);
+  const periodDays = Number.isFinite(days) ? Math.min(Math.max(days, 7), 90) : null;
+  const orgFilter = resolveLogOrgFilter(profile, filters.organisation_id);
+  const needsPermitJoin = Boolean(orgFilter || filters.permit_status);
+
+  const select = needsPermitJoin
+    ? `*,
+    permits!inner(permit_number, status, organisation_id),
+    profiles!verification_logs_verified_by_fkey(full_name, role),
+    organisations(name)`
+    : `*,
     permits(permit_number, status),
     profiles!verification_logs_verified_by_fkey(full_name, role),
-    organisations(name)
-  `).order('created_at', { ascending: false });
+    organisations(name)`;
+
+  let query = supabaseAdmin.from('verification_logs').select(select).order('created_at', { ascending: false });
 
   query = applyLogScope(query, profile, filters);
 
+  if (periodDays) {
+    const since = `${lastNDaysUTC(periodDays)[0]}T00:00:00.000Z`;
+    query = query.gte('created_at', since);
+  }
+  if (needsPermitJoin) {
+    if (orgFilter) query = query.eq('permits.organisation_id', orgFilter);
+    if (filters.permit_status) query = query.eq('permits.status', filters.permit_status);
+  }
   if (filters.scan_type) query = query.eq('scan_type', filters.scan_type);
   if (filters.verification_result) query = query.eq('verification_result', filters.verification_result);
 

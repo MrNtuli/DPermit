@@ -64,6 +64,7 @@ export interface AnalyticsFilterOptions {
 }
 
 export interface DashboardChartData {
+  fetched_at?: string;
   permit_status: ChartDataset;
   verification_trend: {
     labels: string[];

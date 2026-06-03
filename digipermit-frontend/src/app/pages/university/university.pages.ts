@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { ViewWillEnter } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
+import { AnalyticsRefreshService } from '../../services/analytics-refresh.service';
 
 @Component({
   selector: 'app-university-dashboard',
@@ -22,9 +24,15 @@ import { ApiService } from '../../services/api.service';
   styles: [`h2{font-size:1.8rem;margin:0;color:var(--ion-color-primary)}`],
   standalone: false,
 })
-export class UniversityDashboardPage {
+export class UniversityDashboardPage implements ViewWillEnter {
   cards: { l: string; v: number }[] = [];
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private analyticsRefresh: AnalyticsRefreshService,
+  ) {}
+  ionViewWillEnter() {
+    this.analyticsRefresh.requestRefresh();
+  }
   onSummary(data: any) {
     this.cards = [
       { l: 'Students', v: data.total_foreign_nationals }, { l: 'Active Visas', v: data.active_permits },
