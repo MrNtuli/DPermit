@@ -198,20 +198,49 @@ async function verifyByRfid(rfidTag, profile, options = {}) {
   return buildVerificationResponse(permit, finalResult, 'rfid');
 }
 
+/** Roles that see all verification logs (platform oversight). */
+const PLATFORM_WIDE_LOG_ROLES = [
+  'system_admin',
+  'immigration_officer',
+  'manager',
+  'auditor',
+];
+
+/**
+ * Log list scoping:
+ * - Checkpoint officers: scans they performed (cross-org; org on row = permit employer).
+ * - Employer / university / clinic: scans for permits at their organisation.
+ * - Platform roles: all logs.
+ */
+function applyLogScope(query, profile, filters = {}) {
+  if (filters.verified_by) {
+    return query.eq('verified_by', filters.verified_by);
+  }
+  if (profile.role === 'verification_officer') {
+    return query.eq('verified_by', profile.id);
+  }
+  if (
+    profile.organisation_id
+    && !PLATFORM_WIDE_LOG_ROLES.includes(profile.role)
+  ) {
+    return query.eq('organisation_id', profile.organisation_id);
+  }
+  return query;
+}
+
 async function getLogs(profile, filters = {}) {
   let query = supabaseAdmin.from('verification_logs').select(`
     *, permits(permit_number, status),
     profiles!verification_logs_verified_by_fkey(full_name, role)
   `).order('created_at', { ascending: false });
 
-  if (profile.role !== 'system_admin' && profile.organisation_id &&
-    !['immigration_officer', 'manager', 'auditor'].includes(profile.role)) {
-    query = query.eq('organisation_id', profile.organisation_id);
-  }
+  query = applyLogScope(query, profile, filters);
+
   if (filters.scan_type) query = query.eq('scan_type', filters.scan_type);
   if (filters.verification_result) query = query.eq('verification_result', filters.verification_result);
 
-  const { data, error } = await query.limit(filters.limit || 100);
+  const limit = Math.min(parseInt(filters.limit, 10) || 100, 500);
+  const { data, error } = await query.limit(limit);
   if (error) throw new Error(error.message);
   return data;
 }

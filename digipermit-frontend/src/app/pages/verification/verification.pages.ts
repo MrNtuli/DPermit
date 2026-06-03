@@ -1,9 +1,11 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { ViewWillEnter } from '@ionic/angular';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ToastController } from '@ionic/angular';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 import { VerificationResult } from '../../interfaces/models';
 
 @Component({
@@ -15,11 +17,11 @@ import { VerificationResult } from '../../interfaces/models';
         <app-page-header title="Verification Dashboard" subtitle="Monitor compliance checks and verify permits at checkpoint"></app-page-header>
 
         <div class="kpi-grid cols-5">
-          <div class="kpi-card"><p class="kpi-label">Total Permits</p><p class="kpi-value">{{ stats?.['total_permits'] || 0 }}</p></div>
-          <div class="kpi-card accent-success"><p class="kpi-label">Active</p><p class="kpi-value">{{ stats?.['active_permits'] || 0 }}</p></div>
-          <div class="kpi-card accent-warning"><p class="kpi-label">Expiring Soon</p><p class="kpi-value">{{ stats?.['expiring_permits'] || 0 }}</p></div>
-          <div class="kpi-card accent-danger"><p class="kpi-label">Expired</p><p class="kpi-value">{{ stats?.['expired_permits'] || 0 }}</p></div>
-          <div class="kpi-card accent-danger"><p class="kpi-label">Open Alerts</p><p class="kpi-value">{{ stats?.['unresolved_alerts'] || 0 }}</p></div>
+          <app-kpi-stat label="Total Permits" [value]="stats?.['total_permits'] || 0"></app-kpi-stat>
+          <app-kpi-stat label="Active" [value]="stats?.['active_permits'] || 0"></app-kpi-stat>
+          <app-kpi-stat label="Expiring Soon" [value]="stats?.['expiring_permits'] || 0"></app-kpi-stat>
+          <app-kpi-stat label="Expired" [value]="stats?.['expired_permits'] || 0"></app-kpi-stat>
+          <app-kpi-stat label="Open Alerts" [value]="stats?.['unresolved_alerts'] || 0"></app-kpi-stat>
         </div>
 
         <app-dashboard-charts [showAlerts]="false" (summaryChange)="stats = $event"></app-dashboard-charts>
@@ -41,7 +43,10 @@ import { VerificationResult } from '../../interfaces/models';
         </div>
 
         <div class="panel-card">
-          <h2 class="panel-title">Recent Verifications</h2>
+          <div class="panel-title-row">
+            <h2 class="panel-title">Recent Verifications</h2>
+            <ion-button fill="clear" size="small" (click)="loadRecentLogs()">Refresh</ion-button>
+          </div>
           <div class="data-list">
             <ion-item *ngFor="let l of logs" lines="full">
               <ion-label>
@@ -50,22 +55,67 @@ import { VerificationResult } from '../../interfaces/models';
               </ion-label>
               <app-status-badge [status]="l.verification_result"></app-status-badge>
             </ion-item>
-            <ion-item *ngIf="!logs.length" lines="none">
-              <ion-label color="medium">No verifications yet. Run a scan to get started.</ion-label>
+            <ion-item *ngIf="logsLoading" lines="none">
+              <ion-spinner name="crescent"></ion-spinner>
+              <ion-label>Loading logs…</ion-label>
+            </ion-item>
+            <ion-item *ngIf="!logsLoading && !logs.length" lines="none">
+              <ion-label color="medium">No verifications yet. Run a scan, then tap Refresh.</ion-label>
             </ion-item>
           </div>
         </div>
       </div>
     </ion-content>
   `,
+  styles: [`
+    .panel-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .panel-title-row .panel-title { margin: 0; }
+  `],
   standalone: false,
 })
-export class VerifyDashboardPage implements OnInit {
+export class VerifyDashboardPage implements OnInit, ViewWillEnter {
   logs: any[] = [];
   stats: Record<string, number> | null = null;
-  constructor(private api: ApiService) {}
+  logsLoading = false;
+  constructor(
+    private api: ApiService,
+    private auth: AuthService,
+    private toast: ToastController,
+  ) {}
   ngOnInit() {
-    this.api.get<any[]>('/verification-logs', { limit: '10' }).subscribe(res => this.logs = res.data as any[]);
+    this.loadRecentLogs();
+  }
+  ionViewWillEnter() {
+    this.loadRecentLogs();
+  }
+  loadRecentLogs() {
+    this.logsLoading = true;
+    const params: Record<string, string> = { limit: '10' };
+    const profile = this.auth.profile;
+    if (profile?.role === 'verification_officer' && profile.id) {
+      params['verified_by'] = profile.id;
+    }
+    this.api.get<any[]>('/verification-logs', params).subscribe({
+      next: res => {
+        this.logs = (res.data as any[]) || [];
+        this.logsLoading = false;
+      },
+      error: async () => {
+        this.logsLoading = false;
+        const t = await this.toast.create({
+          message: 'Could not load verification logs. Pull Refresh or try again.',
+          color: 'warning',
+          duration: 3000,
+        });
+        t.present();
+      },
+    });
   }
 }
 
@@ -220,10 +270,25 @@ export class VerifyRfidPage implements OnInit {
   `,
   standalone: false,
 })
-export class VerifyLogsPage implements OnInit {
+export class VerifyLogsPage implements OnInit, ViewWillEnter {
   logs: any[] = [];
-  constructor(private api: ApiService) {}
-  ngOnInit() { this.api.get<any[]>('/verification-logs').subscribe(res => this.logs = res.data as any[]); }
+  constructor(private api: ApiService, private auth: AuthService) {}
+  ngOnInit() {
+    this.loadLogs();
+  }
+  ionViewWillEnter() {
+    this.loadLogs();
+  }
+  loadLogs() {
+    const params: Record<string, string> = { limit: '100' };
+    const profile = this.auth.profile;
+    if (profile?.role === 'verification_officer' && profile.id) {
+      params['verified_by'] = profile.id;
+    }
+    this.api.get<any[]>('/verification-logs', params).subscribe(res => {
+      this.logs = (res.data as any[]) || [];
+    });
+  }
 }
 
 @Component({
