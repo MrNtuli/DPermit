@@ -33,7 +33,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
     <div class="filter-panel panel-card" *ngIf="filterOptions">
       <div class="filter-header">
         <h2 class="panel-title">Analytics Filters</h2>
-        <p class="filter-subtitle">Charts update automatically. Permit status filters both permit records and verification scans for matching permits.</p>
+        <p class="filter-subtitle">Charts update automatically. Pick <strong>All organisations</strong> or <strong>Acme Global</strong> to see Sompisi&apos;s scans — not the immigration office.</p>
       </div>
       <div class="filter-grid">
         <ion-item lines="none" *ngIf="filterOptions.can_filter_organisation">
@@ -90,19 +90,19 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
           <h2 class="panel-title">Permit Status Distribution</h2>
           <p class="chart-note">{{ permitScopeNote }}</p>
           <app-chart-canvas *ngIf="permitChart" [config]="permitChart" [revision]="chartRevision"></app-chart-canvas>
-          <p class="empty-chart" *ngIf="!permitChart">No permit records match the current filters.</p>
+          <p class="empty-chart" *ngIf="!permitChart">{{ emptyPermitHint }}</p>
         </div>
         <div class="panel-card chart-panel">
           <h2 class="panel-title">Verification Activity ({{ data.period_days }} days)</h2>
           <p class="chart-note">Scans in period — uses permit organisation and permit record status when those filters are set</p>
           <app-chart-canvas *ngIf="trendChart && hasTrendData" [config]="trendChart" [revision]="chartRevision"></app-chart-canvas>
-          <p class="empty-chart" *ngIf="!hasTrendData">No verification activity matches the current filters.</p>
+          <p class="empty-chart" *ngIf="!hasTrendData">{{ emptyVerificationHint }}</p>
         </div>
         <div class="panel-card chart-panel">
           <h2 class="panel-title">Verification Results ({{ data.period_days }} days)</h2>
           <p class="chart-note">Outcome breakdown from checkpoint verifications</p>
           <app-chart-canvas *ngIf="resultChart" [config]="resultChart" [revision]="chartRevision"></app-chart-canvas>
-          <p class="empty-chart" *ngIf="!resultChart">No verifications match the current filters.</p>
+          <p class="empty-chart" *ngIf="!resultChart">{{ emptyVerificationHint }}</p>
         </div>
         <div class="panel-card chart-panel" *ngIf="showAlerts">
           <h2 class="panel-title">{{ alertChartTitle }}</h2>
@@ -219,11 +219,35 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
     return 'Open Alerts by Type';
   }
 
+  get emptyPermitHint(): string {
+    if (this.filters.organisation_id || this.filters.permit_status) {
+      return 'No permit records for this organisation/status. Try All organisations or Acme Global for employee permits.';
+    }
+    return 'No permit records match the current filters.';
+  }
+
+  get emptyVerificationHint(): string {
+    if (this.filters.organisation_id) {
+      return 'No scans for this organisation in the period. Sompisi (WP-2026-SOMPISI-001) is under Acme Global — select that org or All organisations.';
+    }
+    if (this.filters.verification_result || this.filters.scan_type) {
+      return 'No scans match outcome/scan type in this period. Try All organisations, or reset filters and scan again.';
+    }
+    return 'No verification activity matches the current filters.';
+  }
+
   ngOnInit() {
     this.syncSelectValuesFromFilters();
     this.api.get<AnalyticsFilterOptions>('/analytics/filter-options').subscribe({
       next: res => {
         this.filterOptions = res.data;
+        if (
+          this.filters.organisation_id
+          && !res.data.organisations.some(o => o.id === this.filters.organisation_id)
+        ) {
+          this.filters.organisation_id = null;
+          this.orgSelectValue = '';
+        }
         this.loadData();
       },
       error: () => this.loadData(),

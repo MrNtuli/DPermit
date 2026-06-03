@@ -1,13 +1,23 @@
 const { supabaseAdmin } = require('../config/supabase');
 
+/** Roles that see platform-wide analytics (not locked to one employer org). */
+const PLATFORM_WIDE_ANALYTICS_ROLES = [
+  'system_admin',
+  'immigration_officer',
+  'manager',
+  'auditor',
+  'verification_officer',
+];
+
+const PERMIT_HOLDING_ORG_TYPES = ['employer', 'university', 'clinic', 'hospital', 'college'];
+
 function getOrgFilter(profile) {
-  if (profile.role === 'system_admin') return null;
-  if (['immigration_officer', 'manager', 'auditor'].includes(profile.role)) return null;
+  if (PLATFORM_WIDE_ANALYTICS_ROLES.includes(profile.role)) return null;
   return profile.organisation_id || null;
 }
 
 function canSelectOrganisation(profile) {
-  return ['system_admin', 'immigration_officer', 'manager', 'auditor'].includes(profile.role);
+  return PLATFORM_WIDE_ANALYTICS_ROLES.includes(profile.role);
 }
 
 function resolveOrgFilter(profile, requestedOrgId) {
@@ -47,7 +57,9 @@ async function getFilterOptions(profile) {
       .select('id, name, organisation_type')
       .eq('status', 'active')
       .order('name');
-    organisations.push(...(data || []));
+    organisations.push(
+      ...(data || []).filter((o) => PERMIT_HOLDING_ORG_TYPES.includes(o.organisation_type)),
+    );
   } else if (profile.organisation_id) {
     const { data } = await supabaseAdmin
       .from('organisations')
@@ -99,7 +111,10 @@ async function getFilterOptions(profile) {
   };
 }
 
-/** Verification logs scoped by linked permit (employer org + permit status), not verifier's org. */
+/**
+ * Verification logs: when filtering by employer org or permit status, join permits.
+ * Otherwise return all scans in the period (checkpoint officers verify cross-org).
+ */
 async function fetchVerificationLogs(filters, orgFilter, since) {
   const scopeByPermit = Boolean(orgFilter || filters.permit_status);
 
@@ -122,7 +137,10 @@ async function fetchVerificationLogs(filters, orgFilter, since) {
   if (filters.verification_result) logQuery = logQuery.eq('verification_result', filters.verification_result);
 
   const { data, error } = await logQuery;
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error('fetchVerificationLogs:', error.message);
+    throw new Error(error.message);
+  }
   return data || [];
 }
 

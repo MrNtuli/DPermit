@@ -22,7 +22,8 @@ import { VerificationResult } from '../../interfaces/models';
           <div class="kpi-card accent-danger"><p class="kpi-label">Open Alerts</p><p class="kpi-value">{{ stats?.['unresolved_alerts'] || 0 }}</p></div>
         </div>
 
-        <app-dashboard-charts (summaryChange)="stats = $event"></app-dashboard-charts>
+        <app-dashboard-charts [showAlerts]="false" (summaryChange)="stats = $event"></app-dashboard-charts>
+        <p class="chart-scope-note">Charts respect the filters above. <strong>Recent Verifications</strong> below always lists your latest scans (including Sompisi at Acme).</p>
 
         <div class="action-grid">
           <a class="action-card" routerLink="/verification/manual">
@@ -57,6 +58,14 @@ import { VerificationResult } from '../../interfaces/models';
       </div>
     </ion-content>
   `,
+  styles: [`
+    .chart-scope-note {
+      font-size: 0.8rem;
+      color: var(--dp-text-muted);
+      margin: -8px 0 16px;
+      padding: 0 4px;
+    }
+  `],
   standalone: false,
 })
 export class VerifyDashboardPage implements OnInit {
