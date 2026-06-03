@@ -191,6 +191,149 @@ export class AdminCreateOrganisationPage {
 }
 
 @Component({
+  selector: 'app-admin-verification-logs',
+  template: `
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons>
+        <ion-title>Verification Logs</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="app-page">
+      <div class="page-inner">
+        <app-page-header
+          title="Verification Logs"
+          subtitle="Audit trail of manual lookups, QR scans, and RFID checkpoint events across all organisations.">
+        </app-page-header>
+
+        <div class="log-filters panel-card">
+          <ion-item lines="none">
+            <ion-select label="Scan type" labelPlacement="stacked" interface="popover"
+              [(ngModel)]="filterScanType" (ionChange)="loadLogs()">
+              <ion-select-option value="">All types</ion-select-option>
+              <ion-select-option value="manual">Manual lookup</ion-select-option>
+              <ion-select-option value="qr">QR scan</ion-select-option>
+              <ion-select-option value="rfid">RFID</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-select label="Outcome" labelPlacement="stacked" interface="popover"
+              [(ngModel)]="filterResult" (ionChange)="loadLogs()">
+              <ion-select-option value="">All outcomes</ion-select-option>
+              <ion-select-option value="valid">Valid</ion-select-option>
+              <ion-select-option value="expiring_soon">Expiring soon</ion-select-option>
+              <ion-select-option value="pending_verification">Pending verification</ion-select-option>
+              <ion-select-option value="expired">Expired</ion-select-option>
+              <ion-select-option value="not_found">Not found</ion-select-option>
+              <ion-select-option value="suspicious">Suspicious</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+        <div class="data-list log-list" *ngIf="!loading && logs.length">
+          <ion-item *ngFor="let l of logs" lines="full" class="log-row">
+            <ion-icon [name]="scanIcon(l.scan_type)" slot="start" class="log-icon" aria-hidden="true"></ion-icon>
+            <ion-label>
+              <h2>{{ l.permits?.permit_number || 'Unknown permit' }}</h2>
+              <p class="log-meta">
+                {{ l.profiles?.full_name || 'Unknown officer' }}
+                · {{ scanLabel(l.scan_type) }}
+                <span *ngIf="l.organisations?.name"> · {{ l.organisations.name }}</span>
+              </p>
+              <p class="log-time">{{ l.created_at | date:'medium' }}</p>
+              <p class="log-note" *ngIf="l.verification_note">{{ l.verification_note }}</p>
+            </ion-label>
+            <app-status-badge [status]="l.verification_result"></app-status-badge>
+          </ion-item>
+        </div>
+        <app-empty-state *ngIf="!loading && !logs.length"
+          message="No verification logs match the selected filters.">
+        </app-empty-state>
+      </div>
+    </ion-content>
+  `,
+  styles: [`
+    .log-filters {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    @media (min-width: 576px) {
+      .log-filters { grid-template-columns: 1fr 1fr; }
+    }
+    .log-list { margin-top: 8px; }
+    .log-icon {
+      color: var(--dp-emerald, #1f7a5a);
+      font-size: 1.4rem;
+      margin-inline-end: 12px;
+    }
+    .log-meta, .log-time {
+      font-size: 0.82rem;
+      color: var(--dp-text-muted, #64748b);
+    }
+    .log-time { margin-top: 4px; }
+    .log-note {
+      font-size: 0.78rem;
+      font-style: italic;
+      margin-top: 6px;
+    }
+    .log-row ion-label h2 {
+      font-weight: 700;
+      color: var(--dp-forest-deep, #0f3d2e);
+    }
+  `],
+  standalone: false,
+})
+export class AdminVerificationLogsPage implements OnInit {
+  logs: any[] = [];
+  loading = true;
+  filterScanType = '';
+  filterResult = '';
+
+  constructor(private api: ApiService) {}
+
+  ngOnInit() {
+    this.loadLogs();
+  }
+
+  loadLogs() {
+    this.loading = true;
+    const params: Record<string, string> = { limit: '100' };
+    if (this.filterScanType) params['scan_type'] = this.filterScanType;
+    if (this.filterResult) params['verification_result'] = this.filterResult;
+    this.api.get<any[]>('/verification-logs', params).subscribe({
+      next: res => {
+        this.logs = (res.data as any[]) || [];
+        this.loading = false;
+      },
+      error: () => { this.loading = false; },
+    });
+  }
+
+  scanLabel(scanType: string): string {
+    const map: Record<string, string> = {
+      manual: 'Manual lookup',
+      qr: 'QR scan',
+      rfid: 'RFID scan',
+      camera_simulation: 'Camera simulation',
+    };
+    return map[scanType] || (scanType || 'Scan').replace(/_/g, ' ');
+  }
+
+  scanIcon(scanType: string): string {
+    const map: Record<string, string> = {
+      manual: 'search-outline',
+      qr: 'qr-code-outline',
+      rfid: 'radio-outline',
+      camera_simulation: 'camera-outline',
+    };
+    return map[scanType] || 'scan-outline';
+  }
+}
+
+@Component({
   selector: 'app-admin-list',
   template: `
     <ion-header><ion-toolbar><ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons><ion-title>{{ title }}</ion-title></ion-toolbar></ion-header>
@@ -222,7 +365,6 @@ export class AdminListPage implements OnInit {
     else if (path.includes('permit-types')) { this.title = 'Permit Types'; this.endpoint = '/permit-types'; }
     else if (path.includes('permits')) { this.title = 'All Permits'; this.endpoint = '/permits'; }
     else if (path.includes('alerts')) { this.title = 'Alerts'; this.endpoint = '/alerts'; }
-    else if (path.includes('verification-logs')) { this.title = 'Verification Logs'; this.endpoint = '/verification-logs'; }
     else if (path.includes('iot-devices')) { this.title = 'IoT Devices'; this.endpoint = '/iot/devices'; }
   }
 

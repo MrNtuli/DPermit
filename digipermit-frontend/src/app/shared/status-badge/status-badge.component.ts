@@ -2,11 +2,16 @@ import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-status-badge',
-  template: `<ion-badge [color]="color">{{ status | titlecase }}</ion-badge>`,
+  template: `<ion-badge [color]="color">{{ displayStatus }}</ion-badge>`,
   standalone: false,
 })
 export class StatusBadgeComponent {
   @Input() status = '';
+
+  get displayStatus(): string {
+    if (!this.status) return '';
+    return this.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
 
   get color(): string {
     const map: Record<string, string> = {

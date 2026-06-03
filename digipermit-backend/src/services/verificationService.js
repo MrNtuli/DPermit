@@ -230,8 +230,10 @@ function applyLogScope(query, profile, filters = {}) {
 
 async function getLogs(profile, filters = {}) {
   let query = supabaseAdmin.from('verification_logs').select(`
-    *, permits(permit_number, status),
-    profiles!verification_logs_verified_by_fkey(full_name, role)
+    *,
+    permits(permit_number, status),
+    profiles!verification_logs_verified_by_fkey(full_name, role),
+    organisations(name)
   `).order('created_at', { ascending: false });
 
   query = applyLogScope(query, profile, filters);

@@ -256,14 +256,22 @@ export class VerifyRfidPage implements OnInit {
 @Component({
   selector: 'app-verify-logs',
   template: `
-    <ion-header><ion-toolbar><ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons><ion-title>Verification Logs</ion-title></ion-toolbar></ion-header>
-    <ion-content>
-      <ion-list>
-        <ion-item *ngFor="let l of logs">
-          <ion-label><h3>{{ l.permits?.permit_number }}</h3><p>{{ l.scan_type }} · {{ l.created_at | date:'medium' }}</p></ion-label>
-          <app-status-badge [status]="l.verification_result"></app-status-badge>
-        </ion-item>
-      </ion-list>
+    <ion-header><ion-toolbar><ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons><ion-title>Recent Logs</ion-title></ion-toolbar></ion-header>
+    <ion-content class="app-page">
+      <div class="page-inner">
+        <app-page-header title="Your verification history" subtitle="Scans you performed at the checkpoint (newest first)."></app-page-header>
+        <div class="data-list">
+          <ion-item *ngFor="let l of logs" lines="full">
+            <ion-icon [name]="logIcon(l.scan_type)" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <h2>{{ l.permits?.permit_number || 'Unknown permit' }}</h2>
+              <p>{{ scanLabel(l.scan_type) }} · {{ l.created_at | date:'medium' }}</p>
+            </ion-label>
+            <app-status-badge [status]="l.verification_result"></app-status-badge>
+          </ion-item>
+        </div>
+        <app-empty-state *ngIf="!logs.length" message="No scans yet. Use Manual Lookup or QR Scan."></app-empty-state>
+      </div>
     </ion-content>
   `,
   standalone: false,
@@ -286,6 +294,16 @@ export class VerifyLogsPage implements OnInit, ViewWillEnter {
     this.api.get<any[]>('/verification-logs', params).subscribe(res => {
       this.logs = (res.data as any[]) || [];
     });
+  }
+
+  scanLabel(scanType: string): string {
+    const map: Record<string, string> = { manual: 'Manual lookup', qr: 'QR scan', rfid: 'RFID scan' };
+    return map[scanType] || scanType;
+  }
+
+  logIcon(scanType: string): string {
+    const map: Record<string, string> = { manual: 'search-outline', qr: 'qr-code-outline', rfid: 'radio-outline' };
+    return map[scanType] || 'scan-outline';
   }
 }
 
