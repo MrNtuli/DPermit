@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { StatusBadgeComponent } from './status-badge/status-badge.component';
@@ -16,7 +17,7 @@ import { VerifyQuickActionsComponent } from './verify-quick-actions/verify-quick
 
 @NgModule({
   declarations: [StatusBadgeComponent, ExpiryCountdownComponent, PageHeaderComponent, EmptyStateComponent, QrDisplayComponent, QrScannerComponent, PermitDocumentComponent, VerificationCertificateComponent, ChartCanvasComponent, DashboardChartsComponent, VerifyQuickActionsComponent],
-  imports: [CommonModule, IonicModule, RouterModule],
-  exports: [StatusBadgeComponent, ExpiryCountdownComponent, PageHeaderComponent, EmptyStateComponent, QrDisplayComponent, QrScannerComponent, PermitDocumentComponent, VerificationCertificateComponent, ChartCanvasComponent, DashboardChartsComponent, VerifyQuickActionsComponent, CommonModule, IonicModule, RouterModule],
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule],
+  exports: [StatusBadgeComponent, ExpiryCountdownComponent, PageHeaderComponent, EmptyStateComponent, QrDisplayComponent, QrScannerComponent, PermitDocumentComponent, VerificationCertificateComponent, ChartCanvasComponent, DashboardChartsComponent, VerifyQuickActionsComponent, CommonModule, FormsModule, IonicModule, RouterModule],
 })
 export class SharedModule {}

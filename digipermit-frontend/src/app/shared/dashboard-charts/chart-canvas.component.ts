@@ -26,6 +26,8 @@ export class ChartCanvasComponent implements AfterViewInit, OnChanges, OnDestroy
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
   @Input() type: ChartType = 'doughnut';
   @Input() config: ChartConfiguration | null = null;
+  /** Bumped when filter/data changes so Chart.js always redraws. */
+  @Input() revision = 0;
 
   private chart?: Chart;
 
