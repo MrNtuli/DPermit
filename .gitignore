@@ -13,3 +13,6 @@ Thumbs.db
 *.swp
 coverage/
 .supabase/
+
+# Office lock files
+~$*
