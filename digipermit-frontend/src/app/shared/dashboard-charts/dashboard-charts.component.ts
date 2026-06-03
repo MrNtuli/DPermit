@@ -25,6 +25,27 @@ const STATUS_COLORS: Record<string, string> = {
 
 const RESULT_COLORS = ['#1F7A5A', '#2a9d72', '#F59E0B', '#D64545', '#64748B', '#0F3D2E', '#94a3b8'];
 
+/** Shared Chart.js layout so axis labels and legends do not overlap. */
+const CHART_LAYOUT = { padding: { top: 8, right: 8, bottom: 20, left: 4 } };
+
+const LEGEND_BOTTOM = {
+  position: 'bottom' as const,
+  align: 'center' as const,
+  labels: {
+    boxWidth: 10,
+    padding: 12,
+    font: { size: 10 },
+  },
+};
+
+const CATEGORY_TICKS = {
+  maxRotation: 0,
+  minRotation: 0,
+  autoSkip: true,
+  maxTicksLimit: 10,
+  font: { size: 10 },
+};
+
 const DEFAULT_FILTERS: AnalyticsFilters = {
   organisation_id: null,
   days: 14,
@@ -129,7 +150,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
       <div class="panel-title-row">
         <div>
           <h2 class="panel-title">Recent Verifications</h2>
-          <p class="chart-note">Same filters as the charts above (period, scan type, outcome, organisation)</p>
+          <p class="chart-note recent-logs-note">Uses the same filters as the charts above.</p>
         </div>
         <ion-button fill="clear" size="small" (click)="loadRecentLogs()" [disabled]="recentLogsLoading">Refresh</ion-button>
       </div>
@@ -214,7 +235,11 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
     .chart-note {
       font-size: 0.78rem;
       color: var(--dp-text-muted);
-      margin: -8px 0 12px;
+      margin: 0 0 14px;
+      line-height: 1.45;
+    }
+    .chart-panel .panel-title {
+      margin-bottom: 6px;
     }
     .empty-chart {
       text-align: center;
@@ -231,7 +256,19 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
       gap: 8px;
       margin-bottom: 8px;
     }
-    .recent-logs-panel .panel-title { margin: 0; }
+    .recent-logs-panel .panel-title { margin: 0 0 4px; }
+    .recent-logs-panel .recent-logs-note {
+      margin: 0;
+      line-height: 1.45;
+      max-width: 520px;
+    }
+    .recent-logs-panel .active-filters {
+      margin: 10px 0 14px;
+      line-height: 1.45;
+    }
+    .chart-panel {
+      overflow: hidden;
+    }
   `],
   standalone: false,
 })
@@ -615,7 +652,8 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+          layout: CHART_LAYOUT,
+          plugins: { legend: LEGEND_BOTTOM },
         },
       };
     }
@@ -654,11 +692,12 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: CHART_LAYOUT,
           scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 } },
-            x: { ticks: { maxRotation: 45, minRotation: 0 } },
+            y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } },
+            x: { ticks: CATEGORY_TICKS, grid: { display: false } },
           },
-          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+          plugins: { legend: LEGEND_BOTTOM },
         },
       };
     }
@@ -667,7 +706,7 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
       this.resultChart = {
         type: 'bar',
         data: {
-          labels: d.verification_results.labels.map(l => this.titleCase(l)),
+          labels: d.verification_results.labels.map(l => this.shortLabel(l)),
           datasets: [{
             label: 'Attempts',
             data: [...d.verification_results.values],
@@ -676,10 +715,15 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
           }],
         },
         options: {
+          indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
+          layout: CHART_LAYOUT,
           plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+          scales: {
+            x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } },
+            y: { ticks: { font: { size: 10 }, autoSkip: false } },
+          },
         },
       };
     }
@@ -700,8 +744,12 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
+          layout: CHART_LAYOUT,
           plugins: { legend: { display: false } },
-          scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+          scales: {
+            x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } },
+            y: { ticks: { font: { size: 10 } } },
+          },
         },
       };
     }
@@ -709,5 +757,17 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
 
   private titleCase(s: string) {
     return s.replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  /** Shorter axis labels to avoid overlap on bar charts. */
+  private shortLabel(s: string): string {
+    const t = this.titleCase(s.replace(/_/g, ' '));
+    if (t.length <= 14) return t;
+    const map: Record<string, string> = {
+      'Pending Verification': 'Pending',
+      'Expiring Soon': 'Expiring',
+      'Not Found': 'Not found',
+    };
+    return map[t] || t.slice(0, 12) + '…';
   }
 }

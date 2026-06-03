@@ -17,8 +17,15 @@ Chart.register(
   selector: 'app-chart-canvas',
   template: `<div class="chart-wrap"><canvas #canvas></canvas></div>`,
   styles: [`
-    .chart-wrap { position: relative; width: 100%; height: 240px; }
-    @media (min-width: 768px) { .chart-wrap { height: 260px; } }
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 300px;
+      min-height: 300px;
+    }
+    @media (min-width: 768px) {
+      .chart-wrap { height: 320px; min-height: 320px; }
+    }
   `],
   standalone: false,
 })
