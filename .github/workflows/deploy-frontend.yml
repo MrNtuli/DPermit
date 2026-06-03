@@ -61,7 +61,7 @@ jobs:
 
       - name: Build for GitHub Pages
         working-directory: digipermit-frontend
-        run: npm run build -- --configuration=production --base-href=/DPermit/
+        run: npm run build:pages
 
       - uses: actions/configure-pages@v5
 

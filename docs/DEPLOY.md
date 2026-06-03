@@ -133,7 +133,7 @@ Supabase → **Authentication** → **URL configuration**:
 |---------|-----|
 | Login fails / network error | Check `DIGIPERMIT_API_URL` variable; check Render health URL |
 | CORS error | Add GitHub Pages URL to Render `FRONTEND_URL` |
-| 404 on refresh | `base-href` is `/DPermit/` — use repo name exactly **DPermit** |
+| 404 on `/login` or refresh | GitHub Pages has no SPA routing — deploy includes `404.html` copy (see `build:pages`). Use root URL **https://mrntuli.github.io/DPermit/** until redeployed |
 | Empty app | Open browser devtools → failed `api` calls → fix API URL |
 
 ---
