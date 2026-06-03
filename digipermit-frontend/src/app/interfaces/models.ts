@@ -36,6 +36,45 @@ export interface Permit {
   organisations?: { id: string; name: string };
 }
 
+export interface ChartDataset {
+  labels: string[];
+  values: number[];
+}
+
+export interface AnalyticsFilters {
+  organisation_id?: string | null;
+  days?: number;
+  scan_type?: string | null;
+  verification_result?: string | null;
+  permit_status?: string | null;
+  alert_status?: string | null;
+}
+
+export interface AnalyticsFilterOptions {
+  can_filter_organisation: boolean;
+  organisations: { id: string; name: string; organisation_type: string }[];
+  periods: { value: number; label: string }[];
+  scan_types: { value: string; label: string }[];
+  verification_results: { value: string; label: string }[];
+  permit_statuses: { value: string; label: string }[];
+  alert_statuses: { value: string; label: string }[];
+}
+
+export interface DashboardChartData {
+  permit_status: ChartDataset;
+  verification_trend: {
+    labels: string[];
+    total: number[];
+    valid: number[];
+    failed: number[];
+  };
+  verification_results: ChartDataset;
+  alerts_by_type: ChartDataset;
+  period_days: number;
+  scoped_organisation_id?: string | null;
+  applied_filters?: AnalyticsFilters;
+}
+
 export interface Organisation {
   id: string;
   name: string;
@@ -96,6 +135,38 @@ export interface VerificationResult {
   warning_message?: string;
   days_until_expiry?: number;
 }
+
+export const ROLE_LABELS: Record<string, string> = {
+  system_admin: 'System Administrator',
+  foreign_national: 'Foreign National',
+  employer_hr: 'Employer HR Officer',
+  university_officer: 'University Officer',
+  clinic_admin: 'Clinic Administrator',
+  verification_officer: 'Verification Officer',
+  immigration_officer: 'Immigration Officer',
+  manager: 'Manager / Auditor',
+  auditor: 'Auditor',
+};
+
+/** Roles that must be linked to an organisation when provisioned by admin. */
+export const ORG_REQUIRED_ROLES = ['employer_hr', 'university_officer', 'clinic_admin', 'foreign_national'];
+
+export const ORGANISATION_TYPE_LABELS: Record<string, string> = {
+  employer: 'Employer',
+  university: 'University',
+  college: 'College',
+  clinic: 'Clinic',
+  hospital: 'Hospital',
+  immigration_office_simulation: 'Immigration Office (Simulation)',
+  government_department_simulation: 'Government Department (Simulation)',
+  compliance_consultancy: 'Compliance Consultancy',
+  other: 'Other',
+};
+
+export const ORGANISATION_TYPE_OPTIONS = Object.entries(ORGANISATION_TYPE_LABELS)
+  .map(([value, label]) => ({ value, label }));
+
+export const ROLE_OPTIONS = Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }));
 
 export const ROLES = {
   SYSTEM_ADMIN: 'system_admin',

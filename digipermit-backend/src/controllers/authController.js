@@ -1,11 +1,12 @@
 const authService = require('../services/authService');
 const { success, error } = require('../utils/apiResponse');
 
-exports.signup = async (req, res, next) => {
-  try {
-    const result = await authService.signup(req.body);
-    return success(res, result, 'User registered successfully', 201);
-  } catch (err) { next(err); }
+exports.signup = async (req, res) => {
+  return error(
+    res,
+    'Public registration is disabled. System administrators create user accounts via Admin → Users (POST /api/users).',
+    403
+  );
 };
 
 exports.login = async (req, res, next) => {

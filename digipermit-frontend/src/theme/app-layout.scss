@@ -1,0 +1,216 @@
+/** Shared layout patterns used across role dashboards */
+
+.app-page {
+  --background: var(--dp-surface);
+}
+
+.app-page ion-toolbar {
+  --background: #fff;
+  --border-color: var(--dp-border);
+  --color: var(--dp-text);
+}
+
+.page-inner {
+  padding: 16px;
+  max-width: 1280px;
+  margin: 0 auto;
+
+  @media (min-width: 768px) {
+    padding: 24px;
+  }
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  @media (min-width: 576px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 992px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  &.cols-3 {
+    @media (min-width: 992px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  &.cols-5 {
+    @media (min-width: 1200px) {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+}
+
+.kpi-card {
+  background: var(--dp-card);
+  border: 1px solid var(--dp-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+  .kpi-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--dp-text-muted);
+    margin: 0 0 6px;
+  }
+
+  .kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dp-green-800);
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  .kpi-sub {
+    font-size: 0.78rem;
+    color: var(--dp-text-muted);
+    margin: 6px 0 0;
+  }
+
+  &.accent-success .kpi-value { color: var(--ion-color-success); }
+  &.accent-warning .kpi-value { color: var(--ion-color-warning); }
+  &.accent-danger .kpi-value { color: var(--ion-color-danger); }
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.action-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  background: var(--dp-card);
+  border: 1px solid var(--dp-border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--dp-text);
+  transition: box-shadow 0.15s, border-color 0.15s;
+
+  ion-icon {
+    font-size: 1.75rem;
+    color: var(--ion-color-primary);
+    flex-shrink: 0;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 2px 0 0;
+    font-size: 0.78rem;
+    color: var(--dp-text-muted);
+  }
+
+  &:hover, &:focus {
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 4px 12px rgba(27, 67, 50, 0.12);
+  }
+}
+
+.panel-card {
+  background: var(--dp-card);
+  border: 1px solid var(--dp-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+
+  .panel-title {
+    margin: 0 0 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dp-text);
+  }
+}
+
+.data-list {
+  background: var(--dp-card);
+  border: 1px solid var(--dp-border);
+  border-radius: 12px;
+  overflow: hidden;
+
+  ion-item {
+    --background: transparent;
+    --border-color: var(--dp-border);
+  }
+}
+
+.verify-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+
+  @media (min-width: 992px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.verify-panel {
+  background: var(--dp-card);
+  border: 1px solid var(--dp-border);
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 280px;
+}
+
+.result-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 240px;
+  color: var(--dp-text-muted);
+
+  ion-icon {
+    font-size: 4rem;
+    color: var(--dp-green-100);
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--dp-text);
+  }
+
+  p {
+    margin: 8px 0 0;
+    font-size: 0.85rem;
+    max-width: 280px;
+  }
+}
+
+.form-card {
+  background: var(--dp-card);
+  border: 1px solid var(--dp-border);
+  border-radius: 12px;
+  padding: 8px 4px 16px;
+  margin-bottom: 16px;
+
+  ion-item {
+    --background: transparent;
+  }
+}

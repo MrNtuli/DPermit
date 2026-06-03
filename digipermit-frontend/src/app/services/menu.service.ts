@@ -29,7 +29,8 @@ export class MenuService {
     { title: 'Dashboard', url: '/employer/dashboard', icon: 'grid-outline', roles: ['employer_hr'] },
     { title: 'Foreign Employees', url: '/employer/employees', icon: 'people-outline', roles: ['employer_hr'] },
     { title: 'Permit Records', url: '/employer/permits', icon: 'document-text-outline', roles: ['employer_hr'] },
-    { title: 'Verify Permit', url: '/verification/manual', icon: 'search-outline', roles: ['employer_hr'] },
+    { title: 'Manual Lookup', url: '/verification/manual', icon: 'search-outline', roles: ['employer_hr', 'university_officer', 'clinic_admin'] },
+    { title: 'QR Scan', url: '/verification/qr', icon: 'qr-code-outline', roles: ['employer_hr', 'university_officer', 'clinic_admin'] },
     { title: 'Renewal Requests', url: '/employer/requests', icon: 'create-outline', roles: ['employer_hr'] },
 
     { title: 'Dashboard', url: '/university/dashboard', icon: 'grid-outline', roles: ['university_officer'] },

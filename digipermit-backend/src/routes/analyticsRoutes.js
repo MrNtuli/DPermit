@@ -14,5 +14,7 @@ router.get('/permit-types', authorize('system_admin', 'manager', 'auditor'), ctr
 router.get('/organisations', authorize('system_admin', 'manager', 'auditor'), ctrl.getOrganisations);
 router.get('/suspicious-activity', authorize('system_admin', 'immigration_officer', 'manager', 'auditor', 'verification_officer'), ctrl.getSuspicious);
 router.get('/ai-insights', authorize('system_admin', 'immigration_officer', 'manager', 'auditor', 'employer_hr'), ctrl.getAiInsights);
+router.get('/filter-options', authorize('system_admin', 'employer_hr', 'university_officer', 'clinic_admin', 'verification_officer', 'immigration_officer', 'manager', 'auditor'), ctrl.getFilterOptions);
+router.get('/charts', authorize('system_admin', 'employer_hr', 'university_officer', 'clinic_admin', 'verification_officer', 'immigration_officer', 'manager', 'auditor'), ctrl.getCharts);
 
 module.exports = router;

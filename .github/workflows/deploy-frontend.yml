@@ -1,0 +1,73 @@
+# Build Ionic/Angular app and publish to GitHub Pages.
+# Live URL: https://mrntuli.github.io/DPermit/
+#
+# Required: Repo Settings → Secrets and variables → Actions → Variables
+#   DIGIPERMIT_API_URL = https://YOUR-SERVICE.onrender.com/api
+
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'digipermit-frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: digipermit-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: digipermit-frontend
+        run: npm ci
+
+      - name: Write production environment
+        working-directory: digipermit-frontend
+        env:
+          API_URL: ${{ vars.DIGIPERMIT_API_URL }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "::warning::DIGIPERMIT_API_URL not set. Using placeholder — set repo variable before demo."
+            API_URL="https://digipermit-api.onrender.com/api"
+          fi
+          cat > src/environments/environment.prod.ts << EOF
+          export const environment = {
+            production: true,
+            apiUrl: '${API_URL}',
+            appName: 'DigiPermit',
+          };
+          EOF
+
+      - name: Build for GitHub Pages
+        working-directory: digipermit-frontend
+        run: npm run build -- --configuration=production --base-href=/DPermit/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: digipermit-frontend/www
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

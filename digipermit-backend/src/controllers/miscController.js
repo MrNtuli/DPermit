@@ -55,7 +55,7 @@ exports.createIotDevice = async (req, res, next) => {
 };
 
 exports.getSummary = async (req, res, next) => {
-  try { return success(res, await analyticsService.getSummary(req.profile)); } catch (err) { next(err); }
+  try { return success(res, await analyticsService.getSummary(req.profile, req.query)); } catch (err) { next(err); }
 };
 exports.getExpiry = async (req, res, next) => {
   try { return success(res, await analyticsService.getExpiryAnalytics()); } catch (err) { next(err); }
@@ -77,4 +77,10 @@ exports.getSuspicious = async (req, res, next) => {
 };
 exports.getAiInsights = async (req, res, next) => {
   try { return success(res, await analyticsService.getAiInsights(req.profile)); } catch (err) { next(err); }
+};
+exports.getCharts = async (req, res, next) => {
+  try { return success(res, await analyticsService.getChartData(req.profile, req.query)); } catch (err) { next(err); }
+};
+exports.getFilterOptions = async (req, res, next) => {
+  try { return success(res, await analyticsService.getFilterOptions(req.profile)); } catch (err) { next(err); }
 };

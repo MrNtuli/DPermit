@@ -35,3 +35,21 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+@import "./theme/app-layout.scss";
+
+ion-card {
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--dp-border, #e2e8f0);
+}
+
+@media print {
+  ion-menu, ion-menu-button, ion-back-button, .no-print,
+  app-qr-scanner, app-page-header, form {
+    display: none !important;
+  }
+  ion-header, ion-toolbar { display: none !important; }
+  ion-content { --background: #fff; }
+  body { background: #fff !important; }
+}

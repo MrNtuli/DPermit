@@ -1,5 +1,6 @@
 const { supabaseAdmin } = require('../config/supabase');
 const authService = require('./authService');
+const { validateCreateUserPayload } = require('../utils/userValidation');
 
 async function getAll(profile, filters = {}) {
   let query = supabaseAdmin
@@ -35,6 +36,7 @@ async function create(userData, creatorProfile) {
   if (creatorProfile.role !== 'system_admin') {
     throw new Error('Only system administrators can create users');
   }
+  await validateCreateUserPayload(userData, supabaseAdmin);
   return authService.signup(userData);
 }
 

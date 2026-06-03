@@ -6,24 +6,28 @@ import { ApiService } from '../../services/api.service';
   selector: 'app-immigration-dashboard',
   template: `
     <ion-header><ion-toolbar><ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons><ion-title>Compliance Review</ion-title></ion-toolbar></ion-header>
-    <ion-content class="ion-padding">
-      <app-page-header title="Senior Compliance Officer" subtitle="Simulated immigration compliance review — not an official government system"></app-page-header>
-      <ion-note color="warning" class="ion-padding">This is an academic simulation role. DigiPermit does not replace official immigration authorities.</ion-note>
-      <ion-grid><ion-row><ion-col size="6" *ngFor="let s of cards"><ion-card><ion-card-content><h2>{{ s.v }}</h2><p>{{ s.l }}</p></ion-card-content></ion-card></ion-col></ion-row></ion-grid>
+    <ion-content class="app-page">
+      <div class="page-inner">
+        <app-page-header title="Senior Compliance Officer" subtitle="Simulated immigration compliance review"></app-page-header>
+        <ion-note color="warning" class="sim-note">Academic simulation — not an official government system.</ion-note>
+        <div class="kpi-grid cols-3" *ngIf="cards.length">
+          <div class="kpi-card" *ngFor="let s of cards"><p class="kpi-label">{{ s.l }}</p><p class="kpi-value">{{ s.v }}</p></div>
+        </div>
+        <app-dashboard-charts (summaryChange)="onSummary($event)"></app-dashboard-charts>
+      </div>
     </ion-content>
   `,
+  styles: [`.sim-note { display:block; margin-bottom:16px; padding:10px 12px; background:#fff8e1; border-radius:8px; font-size:0.85rem; }`],
   standalone: false,
 })
-export class ImmigrationDashboardPage implements OnInit {
+export class ImmigrationDashboardPage {
   cards: { l: string; v: number }[] = [];
   constructor(private api: ApiService) {}
-  ngOnInit() {
-    this.api.get<any>('/analytics/summary').subscribe(res => {
-      this.cards = [
-        { l: 'Pending Verification', v: res.data.pending_verification }, { l: 'Renewal Requests', v: res.data.renewal_requests },
-        { l: 'Unresolved Alerts', v: res.data.unresolved_alerts },
-      ];
-    });
+  onSummary(data: any) {
+    this.cards = [
+      { l: 'Pending Verification', v: data.pending_verification }, { l: 'Renewal Requests', v: data.renewal_requests },
+      { l: 'Unresolved Alerts', v: data.unresolved_alerts },
+    ];
   }
 }
 

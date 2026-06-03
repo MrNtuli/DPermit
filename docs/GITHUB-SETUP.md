@@ -15,7 +15,7 @@ git init
 git add .
 git commit -m "feat: initial DigiPermit capstone delivery — full-stack compliance system"
 git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/digipermit.git
+git remote add origin https://github.com/MrNtuli/DPermit.git
 git push -u origin main
 ```
 
@@ -54,3 +54,7 @@ fix(cors): allow localhost 4200 for Ionic dev server
 git tag -a v1.0.0-demo -m "Release ready for Week 6 final demonstration"
 git push origin v1.0.0-demo
 ```
+
+## 8. Live URL (optional)
+
+See **[DEPLOY.md](./DEPLOY.md)** — GitHub Pages + Render + Supabase.

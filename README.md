@@ -32,6 +32,17 @@ DPermit/
     └── src/app/                   Pages, services, guards, components
 ```
 
+## Live deployment (GitHub + Render)
+
+Hosted demo (after setup):
+
+- **App:** https://mrntuli.github.io/DPermit/
+- **Repo:** https://github.com/MrNtuli/DPermit
+
+Full steps: **[docs/DEPLOY.md](docs/DEPLOY.md)** and **[docs/GITHUB-SETUP.md](docs/GITHUB-SETUP.md)**.
+
+---
+
 ## Quick Start
 
 ### 1. Supabase Setup

@@ -27,6 +27,26 @@
 | WP-2024-ACME-004 | Revoked | Revoked verification demo |
 | SV-2024-METRO-001 | Active | Study visa demo |
 
+## Live QR Code Demo (real camera scan)
+
+DigiPermit generates a **scannable QR code** on each permit card. The QR encodes the value stored in the database (e.g. `DIGIPERMIT:WP-2024-ACME-001`).
+
+### Employee side
+1. Log in as `james.okonkwo@demo.mail`
+2. Open **My Permits** → select a permit → **Digital Permit** page
+3. Show the **QR code image** on screen (or print/screenshot it)
+
+### Verification officer side
+1. Log in as `verify@digipermit.demo`
+2. Open **QR Scan** (Verification menu)
+3. Click **Start Camera Scan** — allow camera when prompted
+4. Point the camera at the employee's QR code on another device/screen
+5. System verifies in real time and shows Valid / Expired / Revoked
+
+**Tip for presentation:** Open James's QR on a phone; scan with the verification officer laptop webcam.
+
+> These are **fictional compliance records**, not official government permits.
+
 ## 23-Step Demonstration Flow
 
 1. **Log in as HR Officer** (`hr@acmeglobal.demo`)

@@ -6,37 +6,40 @@ import { ApiService } from '../../services/api.service';
 @Component({
   selector: 'app-employer-dashboard',
   template: `
-    <ion-header><ion-toolbar><ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons><ion-title>Employer Dashboard</ion-title></ion-toolbar></ion-header>
-    <ion-content class="ion-padding">
-      <app-page-header title="Work Visa Compliance" subtitle="Monitor foreign employee permits"></app-page-header>
-      <ion-grid *ngIf="stats">
-        <ion-row>
-          <ion-col size="6" *ngFor="let s of cards">
-            <ion-card><ion-card-content><h2>{{ s.v }}</h2><p>{{ s.l }}</p></ion-card-content></ion-card>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+    <ion-header><ion-toolbar><ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons><ion-title>Dashboard</ion-title></ion-toolbar></ion-header>
+    <ion-content class="app-page">
+      <div class="page-inner">
+        <app-page-header title="Work Visa Compliance" subtitle="Monitor foreign employee permits"></app-page-header>
+        <div class="kpi-grid cols-3" *ngIf="stats">
+          <div class="kpi-card" *ngFor="let s of cards">
+            <p class="kpi-label">{{ s.l }}</p>
+            <p class="kpi-value">{{ s.v }}</p>
+          </div>
+        </div>
+        <app-dashboard-charts (summaryChange)="onSummary($event)"></app-dashboard-charts>
+        <app-verify-quick-actions
+          title="Verify at reception"
+          subtitle="Manual lookup or QR scan — same verification flow as university and clinic.">
+        </app-verify-quick-actions>
+      </div>
     </ion-content>
   `,
-  styles: [`h2{font-size:1.8rem;margin:0;color:var(--ion-color-primary)}`],
   standalone: false,
 })
-export class EmployerDashboardPage implements OnInit {
+export class EmployerDashboardPage {
   stats: any = null;
   cards: { l: string; v: number }[] = [];
   constructor(private api: ApiService) {}
-  ngOnInit() {
-    this.api.get<any>('/analytics/summary').subscribe(res => {
-      this.stats = res.data;
-      this.cards = [
-        { l: 'Foreign Employees', v: res.data.total_foreign_nationals },
-        { l: 'Active Work Visas', v: res.data.active_permits },
-        { l: 'Expiring Soon', v: res.data.expiring_permits },
-        { l: 'Expired', v: res.data.expired_permits },
-        { l: 'Pending Requests', v: res.data.renewal_requests },
-        { l: 'Open Alerts', v: res.data.unresolved_alerts },
-      ];
-    });
+  onSummary(data: any) {
+    this.stats = data;
+    this.cards = [
+      { l: 'Foreign Employees', v: data.total_foreign_nationals },
+      { l: 'Active Work Visas', v: data.active_permits },
+      { l: 'Expiring Soon', v: data.expiring_permits },
+      { l: 'Expired', v: data.expired_permits },
+      { l: 'Pending Requests', v: data.renewal_requests },
+      { l: 'Open Alerts', v: data.unresolved_alerts },
+    ];
   }
 }
 
@@ -112,8 +115,15 @@ export class EmployerEmployeesPage implements OnInit {
       </ion-card>
       <ion-list>
         <ion-item *ngFor="let p of permits">
-          <ion-label><h2>{{ p.permit_number }}</h2><p>{{ p.foreign_nationals?.full_name }} · {{ p.permit_types?.name }}</p><app-expiry-countdown [expiryDate]="p.expiry_date"></app-expiry-countdown></ion-label>
+          <ion-label>
+            <h2>{{ p.permit_number }}</h2>
+            <p>{{ p.foreign_nationals?.full_name }} · {{ p.permit_types?.name }}</p>
+            <app-expiry-countdown [expiryDate]="p.expiry_date"></app-expiry-countdown>
+          </ion-label>
           <app-status-badge [status]="p.status"></app-status-badge>
+          <ion-button slot="end" fill="clear" [routerLink]="['/permit-document', p.id]">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </ion-button>
         </ion-item>
       </ion-list>
     </ion-content>

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { Permit, Notification } from '../../interfaces/models';
 
@@ -16,7 +17,7 @@ import { Permit, Notification } from '../../interfaces/models';
         <ion-card-content>
           <app-status-badge [status]="p.status"></app-status-badge>
           <app-expiry-countdown [expiryDate]="p.expiry_date"></app-expiry-countdown>
-          <ion-button fill="outline" size="small" [routerLink]="['/foreign-national/qr', p.id]">View QR Code</ion-button>
+          <ion-button fill="outline" size="small" [routerLink]="['/permit-document', p.id]">View Permit Document</ion-button>
         </ion-card-content>
       </ion-card>
       <h3>Recent Notifications</h3>
@@ -46,7 +47,7 @@ export class FnDashboardPage implements OnInit {
     <ion-header><ion-toolbar><ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons><ion-title>My Permits</ion-title></ion-toolbar></ion-header>
     <ion-content class="ion-padding">
       <ion-list>
-        <ion-item *ngFor="let p of permits" [routerLink]="['/foreign-national/qr', p.id]" button>
+        <ion-item *ngFor="let p of permits" [routerLink]="['/permit-document', p.id]" button>
           <ion-label>
             <h2>{{ p.permit_types?.name }}</h2>
             <p>{{ p.permit_number }} · Expires {{ p.expiry_date }}</p>
@@ -66,28 +67,14 @@ export class FnPermitsPage implements OnInit {
 
 @Component({
   selector: 'app-fn-qr',
-  template: `
-    <ion-header><ion-toolbar><ion-buttons slot="start"><ion-back-button defaultHref="/foreign-national/permits"></ion-back-button></ion-buttons><ion-title>Digital QR Code</ion-title></ion-toolbar></ion-header>
-    <ion-content class="ion-padding ion-text-center">
-      <ion-card *ngIf="permit">
-        <ion-card-header><ion-card-title>{{ permit.permit_number }}</ion-card-title></ion-card-header>
-        <ion-card-content>
-          <div class="qr-box">{{ permit.qr_code_value }}</div>
-          <p class="qr-hint">Present this code for verification scanning</p>
-          <app-expiry-countdown [expiryDate]="permit.expiry_date"></app-expiry-countdown>
-        </ion-card-content>
-      </ion-card>
-    </ion-content>
-  `,
-  styles: [`.qr-box { font-family:monospace; font-size:1.1rem; padding:24px; background:#f0f0f0; border-radius:8px; word-break:break-all; margin:16px 0; }`],
+  template: `<ion-header><ion-toolbar><ion-buttons slot="start"><ion-back-button defaultHref="/foreign-national/permits"></ion-back-button></ion-buttons></ion-toolbar></ion-header><ion-content></ion-content>`,
   standalone: false,
 })
 export class FnQrPage implements OnInit {
-  permit: Permit | null = null;
-  constructor(private api: ApiService) {}
+  constructor(private route: ActivatedRoute, private router: Router) {}
   ngOnInit() {
-    const id = window.location.pathname.split('/').pop();
-    this.api.get<Permit>(`/permits/${id}`).subscribe(res => this.permit = res.data);
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) this.router.navigate(['/permit-document', id], { replaceUrl: true });
   }
 }
 

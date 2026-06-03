@@ -1,4 +1,5 @@
 const { supabaseAdmin } = require('../config/supabase');
+const { validateOrganisationData } = require('../utils/organisationValidation');
 
 async function getAll(filters = {}) {
   let query = supabaseAdmin.from('organisations').select('*').order('created_at', { ascending: false });
@@ -16,7 +17,8 @@ async function getById(id) {
 }
 
 async function create(orgData) {
-  const { data, error } = await supabaseAdmin.from('organisations').insert(orgData).select().single();
+  const payload = validateOrganisationData(orgData);
+  const { data, error } = await supabaseAdmin.from('organisations').insert(payload).select().single();
   if (error) throw new Error(error.message);
   return data;
 }

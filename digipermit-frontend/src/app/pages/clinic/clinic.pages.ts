@@ -5,12 +5,22 @@ import { ApiService } from '../../services/api.service';
   selector: 'app-clinic-dashboard',
   template: `
     <ion-header><ion-toolbar><ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons><ion-title>Clinic Dashboard</ion-title></ion-toolbar></ion-header>
-    <ion-content class="ion-padding">
-      <app-page-header title="Immigration Document Monitoring" subtitle="Foreign patient and employee records"></app-page-header>
-      <ion-grid><ion-row><ion-col size="6" *ngFor="let s of cards"><ion-card><ion-card-content><h2>{{ s.v }}</h2><p>{{ s.l }}</p></ion-card-content></ion-card></ion-col></ion-row></ion-grid>
+    <ion-content class="app-page">
+      <div class="page-inner">
+        <app-page-header title="Immigration Document Monitoring" subtitle="Foreign patient and employee records"></app-page-header>
+        <div class="kpi-grid cols-3" *ngIf="cards.length">
+          <div class="kpi-card" *ngFor="let s of cards">
+            <p class="kpi-label">{{ s.l }}</p>
+            <p class="kpi-value">{{ s.v }}</p>
+          </div>
+        </div>
+        <app-verify-quick-actions
+          title="Verify patient permit"
+          subtitle="Manual lookup or QR scan at clinic reception.">
+        </app-verify-quick-actions>
+      </div>
     </ion-content>
   `,
-  styles: [`h2{font-size:1.8rem;margin:0;color:var(--ion-color-primary)}`],
   standalone: false,
 })
 export class ClinicDashboardPage implements OnInit {
@@ -18,7 +28,11 @@ export class ClinicDashboardPage implements OnInit {
   constructor(private api: ApiService) {}
   ngOnInit() {
     this.api.get<any>('/analytics/summary').subscribe(res => {
-      this.cards = [{ l: 'Records', v: res.data.total_foreign_nationals }, { l: 'Active Permits', v: res.data.active_permits }, { l: 'Alerts', v: res.data.unresolved_alerts }];
+      this.cards = [
+        { l: 'Records', v: res.data.total_foreign_nationals },
+        { l: 'Active Permits', v: res.data.active_permits },
+        { l: 'Alerts', v: res.data.unresolved_alerts },
+      ];
     });
   }
 }

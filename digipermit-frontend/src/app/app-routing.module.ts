@@ -24,6 +24,7 @@ const routes: Routes = [
       { path: 'immigration', loadChildren: () => import('./pages/immigration/immigration-pages.module').then(m => m.ImmigrationPagesModule) },
       { path: 'manager', loadChildren: () => import('./pages/manager/manager-pages.module').then(m => m.ManagerPagesModule) },
       { path: 'profile', loadChildren: () => import('./pages/auth/auth-pages.module').then(m => m.AuthPagesModule) },
+      { path: 'permit-document', loadChildren: () => import('./pages/shared/shared-pages.module').then(m => m.SharedPagesModule) },
     ],
   },
   { path: '**', redirectTo: 'welcome' },

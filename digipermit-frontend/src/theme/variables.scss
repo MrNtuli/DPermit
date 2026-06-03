@@ -1,12 +1,39 @@
-:root {
-  --ion-color-primary: #1565c0;
-  --ion-color-primary-rgb: 21, 101, 192;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-shade: #1258a9;
-  --ion-color-primary-tint: #2c74c6;
-}
+/** DigiPermit design tokens — inspired by compliance dashboard mockup (forest green, clean cards) */
 
-ion-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+:root {
+  --dp-green-900: #0d2818;
+  --dp-green-800: #1b4332;
+  --dp-green-700: #2d6a4f;
+  --dp-green-600: #40916c;
+  --dp-green-100: #d8f3dc;
+  --dp-surface: #f4f6f8;
+  --dp-card: #ffffff;
+  --dp-border: #e2e8f0;
+  --dp-text: #1a202c;
+  --dp-text-muted: #64748b;
+  --dp-sidebar-width: 260px;
+
+  --ion-color-primary: #1b4332;
+  --ion-color-primary-rgb: 27, 67, 50;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade: #183b2c;
+  --ion-color-primary-tint: #325646;
+
+  --ion-color-secondary: #40916c;
+  --ion-color-secondary-rgb: 64, 145, 108;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-shade: #38805f;
+  --ion-color-secondary-tint: #539c7b;
+
+  --ion-color-tertiary: #52796f;
+  --ion-color-tertiary-rgb: 82, 121, 111;
+  --ion-color-tertiary-contrast: #ffffff;
+
+  --ion-color-success: #2d6a4f;
+  --ion-color-warning: #e9a319;
+  --ion-color-danger: #c0392b;
+
+  --ion-background-color: var(--dp-surface);
+  --ion-toolbar-background: #ffffff;
+  --ion-item-background: #ffffff;
 }
