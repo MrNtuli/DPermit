@@ -32,3 +32,15 @@ export class GuestGuard implements CanActivate {
     return this.router.createUrlTree([this.auth.getDashboardRoute()]);
   }
 }
+
+/** Blocks lazy-loaded areas unless the user's role is allowed (e.g. /admin → system_admin only). */
+@Injectable({ providedIn: 'root' })
+export class AreaGuard implements CanActivate {
+  constructor(private auth: AuthService, private router: Router) {}
+
+  canActivate(route: import('@angular/router').ActivatedRouteSnapshot): boolean | UrlTree {
+    const allowedRoles: string[] = route.data['roles'] || [];
+    if (!allowedRoles.length || this.auth.hasRole(...allowedRoles)) return true;
+    return this.router.createUrlTree(['/access-denied']);
+  }
+}

@@ -7,7 +7,7 @@ import { PermitDocumentPage } from './permit-document.page';
 const roles = {
   roles: [
     'system_admin', 'foreign_national', 'employer_hr', 'university_officer',
-    'clinic_admin', 'verification_officer', 'immigration_officer', 'manager', 'auditor',
+    'clinic_admin', 'immigration_officer', 'manager', 'auditor',
   ],
 };
 

@@ -6,7 +6,7 @@ const ctrl = require('../controllers/miscController');
 const router = express.Router();
 router.use(authMiddleware);
 
-router.get('/summary', authorize('system_admin', 'employer_hr', 'university_officer', 'clinic_admin', 'foreign_national', 'verification_officer', 'immigration_officer', 'manager', 'auditor'), ctrl.getSummary);
+router.get('/summary', authorize('system_admin', 'employer_hr', 'university_officer', 'clinic_admin', 'verification_officer', 'immigration_officer', 'manager', 'auditor'), ctrl.getSummary);
 router.get('/expiry', authorize('system_admin', 'employer_hr', 'university_officer', 'immigration_officer', 'manager', 'auditor'), ctrl.getExpiry);
 router.get('/verifications', authorize('system_admin', 'verification_officer', 'immigration_officer', 'manager', 'auditor'), ctrl.getVerifications);
 router.get('/alerts', authorize('system_admin', 'immigration_officer', 'manager', 'auditor'), ctrl.getAlertAnalytics);

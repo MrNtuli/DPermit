@@ -63,13 +63,13 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
             <ion-select-option *ngFor="let r of filterOptions.verification_results" [value]="r.value">{{ r.label }}</ion-select-option>
           </ion-select>
         </ion-item>
-        <ion-item lines="none">
+        <ion-item lines="none" *ngIf="showPermitStatusFilter">
           <ion-select label="Permit record status" labelPlacement="stacked" interface="popover"
             [(ngModel)]="permitStatusSelectValue" (ionChange)="onPermitStatusChange($event.detail.value)">
             <ion-select-option *ngFor="let s of filterOptions.permit_statuses" [value]="s.value">{{ s.label }}</ion-select-option>
           </ion-select>
         </ion-item>
-        <ion-item lines="none" *ngIf="showAlerts">
+        <ion-item lines="none" *ngIf="showAlerts && showAlertCharts">
           <ion-select label="Alerts" labelPlacement="stacked" interface="popover"
             [(ngModel)]="filters.alert_status" (ionChange)="onFilterChange()">
             <ion-select-option *ngFor="let a of filterOptions.alert_statuses" [value]="a.value">{{ a.label }}</ion-select-option>
@@ -86,7 +86,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
 
     <div class="charts-section charts-busy" *ngIf="data">
       <div class="charts-grid">
-        <div class="panel-card chart-panel">
+        <div class="panel-card chart-panel" *ngIf="showPermitCharts">
           <h2 class="panel-title">Permit Status Distribution</h2>
           <p class="chart-note">{{ permitScopeNote }}</p>
           <app-chart-canvas *ngIf="permitChart" [config]="permitChart" [revision]="chartRevision"></app-chart-canvas>
@@ -104,7 +104,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
           <app-chart-canvas *ngIf="resultChart" [config]="resultChart" [revision]="chartRevision"></app-chart-canvas>
           <p class="empty-chart" *ngIf="!resultChart">{{ emptyVerificationHint }}</p>
         </div>
-        <div class="panel-card chart-panel" *ngIf="showAlerts">
+        <div class="panel-card chart-panel" *ngIf="showAlerts && showAlertCharts">
           <h2 class="panel-title">{{ alertChartTitle }}</h2>
           <p class="chart-note">Compliance alerts in scope</p>
           <app-chart-canvas *ngIf="alertChart" [config]="alertChart" [revision]="chartRevision"></app-chart-canvas>
@@ -206,6 +206,18 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
 
   constructor(private api: ApiService) {}
 
+  get showPermitCharts(): boolean {
+    return this.filterOptions?.can_view_permit_charts !== false;
+  }
+
+  get showAlertCharts(): boolean {
+    return this.filterOptions?.can_view_alert_charts !== false;
+  }
+
+  get showPermitStatusFilter(): boolean {
+    return this.showPermitCharts;
+  }
+
   get permitScopeNote(): string {
     if (!this.data) return '';
     const parts: string[] = ['Current permit records'];
@@ -229,8 +241,11 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
   }
 
   get emptyVerificationHint(): string {
+    if (this.filterOptions?.role_scope === 'checkpoint') {
+      return 'No scans by you in this period. Run a manual lookup or QR scan, then refresh.';
+    }
     if (this.filters.organisation_id) {
-      return 'No scans for this organisation in the period. Sompisi (WP-2026-SOMPISI-001) is under Acme Global — select that org or All organisations.';
+      return 'No scans for this organisation in the period. Try All organisations or your employer org.';
     }
     if (this.filters.verification_result || this.filters.scan_type) {
       return 'No scans match outcome/scan type in this period. Try All organisations, or reset filters and scan again.';

@@ -24,10 +24,13 @@ function isReadOnlyRole(role) {
   return ['manager', 'auditor'].includes(role);
 }
 
+const {
+  canAccessOrganisationData,
+  canListAllPermits,
+} = require('../utils/accessScope');
+
 function canAccessOrganisation(profile, organisationId) {
-  if (profile.role === 'system_admin') return true;
-  if (['manager', 'auditor', 'verification_officer', 'immigration_officer'].includes(profile.role)) return true;
-  return profile.organisation_id === organisationId;
+  return canAccessOrganisationData(profile, organisationId);
 }
 
 function canAccessForeignNational(profile, foreignNationalId) {

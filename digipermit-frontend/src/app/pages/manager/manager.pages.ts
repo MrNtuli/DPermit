@@ -9,10 +9,7 @@ import { ApiService } from '../../services/api.service';
       <div class="page-inner">
         <app-page-header title="Read-Only Compliance Overview" subtitle="Manager / Auditor view — live platform analytics"></app-page-header>
         <div class="kpi-grid" *ngIf="cards.length">
-          <div class="kpi-card" *ngFor="let s of cards">
-            <p class="kpi-label">{{ s.l }}</p>
-            <p class="kpi-value">{{ s.v }}</p>
-          </div>
+          <app-kpi-stat *ngFor="let s of cards" [label]="s.l" [value]="s.v"></app-kpi-stat>
         </div>
         <app-dashboard-charts (summaryChange)="onSummary($event)"></app-dashboard-charts>
       </div>

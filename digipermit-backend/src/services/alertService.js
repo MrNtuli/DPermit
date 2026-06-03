@@ -1,4 +1,5 @@
 const { supabaseAdmin } = require('../config/supabase');
+const { isPlatformWide, isSelfScoped } = require('../utils/accessScope');
 
 async function create(alertData) {
   const { data, error } = await supabaseAdmin.from('alerts').insert({
@@ -14,8 +15,9 @@ async function getAll(profile, filters = {}) {
     *, permits(permit_number), foreign_nationals(full_name), organisations(name)
   `).order('created_at', { ascending: false });
 
-  if (profile.role !== 'system_admin' && profile.organisation_id &&
-    !['immigration_officer', 'manager', 'auditor'].includes(profile.role)) {
+  if (isSelfScoped(profile.role) && profile.foreign_national_id) {
+    query = query.eq('foreign_national_id', profile.foreign_national_id);
+  } else if (!isPlatformWide(profile.role) && profile.organisation_id) {
     query = query.eq('organisation_id', profile.organisation_id);
   }
   if (filters.status) query = query.eq('status', filters.status);
@@ -27,9 +29,18 @@ async function getAll(profile, filters = {}) {
   return data;
 }
 
-async function getById(id) {
+async function getById(id, profile) {
   const { data, error } = await supabaseAdmin.from('alerts').select('*').eq('id', id).single();
   if (error) throw new Error(error.message);
+  if (profile) {
+    if (isSelfScoped(profile.role) && data.foreign_national_id !== profile.foreign_national_id) {
+      throw new Error('Access denied');
+    }
+    if (!isPlatformWide(profile.role) && profile.organisation_id
+      && data.organisation_id !== profile.organisation_id) {
+      throw new Error('Access denied');
+    }
+  }
   return data;
 }
 

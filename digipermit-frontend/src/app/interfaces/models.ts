@@ -52,6 +52,9 @@ export interface AnalyticsFilters {
 
 export interface AnalyticsFilterOptions {
   can_filter_organisation: boolean;
+  can_view_permit_charts?: boolean;
+  can_view_alert_charts?: boolean;
+  role_scope?: 'platform' | 'organisation' | 'checkpoint' | 'self';
   organisations: { id: string; name: string; organisation_type: string }[];
   periods: { value: number; label: string }[];
   scan_types: { value: string; label: string }[];

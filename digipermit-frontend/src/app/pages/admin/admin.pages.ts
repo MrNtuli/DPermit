@@ -17,10 +17,7 @@ import {
         <app-page-header title="Platform Overview" subtitle="Global compliance monitoring statistics"></app-page-header>
         <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
         <div class="kpi-grid" *ngIf="!loading && stats">
-          <div class="kpi-card" *ngFor="let s of statCards">
-            <p class="kpi-label">{{ s.label }}</p>
-            <p class="kpi-value">{{ s.value }}</p>
-          </div>
+          <app-kpi-stat *ngFor="let s of statCards" [label]="s.label" [value]="s.value"></app-kpi-stat>
         </div>
         <app-dashboard-charts (summaryChange)="onSummary($event)"></app-dashboard-charts>
       </div>

@@ -14,10 +14,12 @@ import { VerificationCertificateComponent } from './verification-certificate/ver
 import { ChartCanvasComponent } from './dashboard-charts/chart-canvas.component';
 import { DashboardChartsComponent } from './dashboard-charts/dashboard-charts.component';
 import { VerifyQuickActionsComponent } from './verify-quick-actions/verify-quick-actions.component';
+import { KpiStatCardComponent } from './kpi-stat-card/kpi-stat-card.component';
+import { RoleAlertsPage } from './role-alerts/role-alerts.page';
 
 @NgModule({
-  declarations: [StatusBadgeComponent, ExpiryCountdownComponent, PageHeaderComponent, EmptyStateComponent, QrDisplayComponent, QrScannerComponent, PermitDocumentComponent, VerificationCertificateComponent, ChartCanvasComponent, DashboardChartsComponent, VerifyQuickActionsComponent],
+  declarations: [StatusBadgeComponent, ExpiryCountdownComponent, PageHeaderComponent, EmptyStateComponent, QrDisplayComponent, QrScannerComponent, PermitDocumentComponent, VerificationCertificateComponent, ChartCanvasComponent, DashboardChartsComponent, VerifyQuickActionsComponent, KpiStatCardComponent, RoleAlertsPage],
   imports: [CommonModule, FormsModule, IonicModule, RouterModule],
-  exports: [StatusBadgeComponent, ExpiryCountdownComponent, PageHeaderComponent, EmptyStateComponent, QrDisplayComponent, QrScannerComponent, PermitDocumentComponent, VerificationCertificateComponent, ChartCanvasComponent, DashboardChartsComponent, VerifyQuickActionsComponent, CommonModule, FormsModule, IonicModule, RouterModule],
+  exports: [StatusBadgeComponent, ExpiryCountdownComponent, PageHeaderComponent, EmptyStateComponent, QrDisplayComponent, QrScannerComponent, PermitDocumentComponent, VerificationCertificateComponent, ChartCanvasComponent, DashboardChartsComponent, VerifyQuickActionsComponent, KpiStatCardComponent, RoleAlertsPage, CommonModule, FormsModule, IonicModule, RouterModule],
 })
 export class SharedModule {}

@@ -8,8 +8,8 @@ import { ApiService } from '../../services/api.service';
     <ion-content class="app-page">
       <div class="page-inner">
         <app-page-header title="Study Visa Compliance" subtitle="Monitor international student permits"></app-page-header>
-        <div class="kpi-grid cols-3" *ngIf="cards.length">
-          <div class="kpi-card" *ngFor="let s of cards"><p class="kpi-label">{{ s.l }}</p><p class="kpi-value">{{ s.v }}</p></div>
+        <div class="kpi-grid" *ngIf="cards.length">
+          <app-kpi-stat *ngFor="let s of cards" [label]="s.l" [value]="s.v"></app-kpi-stat>
         </div>
         <app-dashboard-charts (summaryChange)="onSummary($event)"></app-dashboard-charts>
         <app-verify-quick-actions

@@ -16,16 +16,14 @@ import { VerificationResult } from '../../interfaces/models';
       <div class="page-inner">
         <app-page-header title="Verification Dashboard" subtitle="Monitor compliance checks and verify permits at checkpoint"></app-page-header>
 
-        <div class="kpi-grid cols-5">
-          <app-kpi-stat label="Total Permits" [value]="stats?.['total_permits'] || 0"></app-kpi-stat>
-          <app-kpi-stat label="Active" [value]="stats?.['active_permits'] || 0"></app-kpi-stat>
-          <app-kpi-stat label="Expiring Soon" [value]="stats?.['expiring_permits'] || 0"></app-kpi-stat>
-          <app-kpi-stat label="Expired" [value]="stats?.['expired_permits'] || 0"></app-kpi-stat>
-          <app-kpi-stat label="Open Alerts" [value]="stats?.['unresolved_alerts'] || 0"></app-kpi-stat>
+        <div class="kpi-grid cols-5" *ngIf="stats">
+          <app-kpi-stat label="My Scans (period)" [value]="stats['my_scans_in_period'] || 0"></app-kpi-stat>
+          <app-kpi-stat label="Successful" [value]="stats['successful_verifications'] || 0"></app-kpi-stat>
+          <app-kpi-stat label="Failed / Invalid" [value]="stats['failed_verifications'] || 0"></app-kpi-stat>
         </div>
 
         <app-dashboard-charts [showAlerts]="false" (summaryChange)="stats = $event"></app-dashboard-charts>
-        <p class="chart-scope-note">Charts respect the filters above. <strong>Recent Verifications</strong> below always lists your latest scans (including Sompisi at Acme).</p>
+        <p class="chart-scope-note">Analytics below show <strong>your checkpoint scans only</strong>. Recent Verifications lists your latest activity.</p>
 
         <div class="action-grid">
           <a class="action-card" routerLink="/verification/manual">

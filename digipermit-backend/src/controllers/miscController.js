@@ -35,7 +35,7 @@ exports.getAlerts = async (req, res, next) => {
   try { return success(res, await alertService.getAll(req.profile, req.query)); } catch (err) { next(err); }
 };
 exports.getAlertById = async (req, res, next) => {
-  try { return success(res, await alertService.getById(req.params.id)); } catch (err) { next(err); }
+  try { return success(res, await alertService.getById(req.params.id, req.profile)); } catch (err) { next(err); }
 };
 exports.resolveAlert = async (req, res, next) => {
   try { return success(res, await alertService.resolve(req.params.id, req.profile), 'Alert resolved'); } catch (err) { next(err); }

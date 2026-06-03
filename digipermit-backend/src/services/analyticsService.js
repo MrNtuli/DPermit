@@ -1,29 +1,20 @@
 const { supabaseAdmin } = require('../config/supabase');
-
-/** Roles that see platform-wide analytics (not locked to one employer org). */
-const PLATFORM_WIDE_ANALYTICS_ROLES = [
-  'system_admin',
-  'immigration_officer',
-  'manager',
-  'auditor',
-  'verification_officer',
-];
+const {
+  organisationFilterFor,
+  canSelectOrganisationInAnalytics,
+  canViewPermitInventoryAnalytics,
+  canViewAlertAnalytics,
+  isCheckpointRole,
+  isSelfScoped,
+  isPlatformWide,
+} = require('../utils/accessScope');
 
 const PERMIT_HOLDING_ORG_TYPES = ['employer', 'university', 'clinic', 'hospital', 'college'];
 
-function getOrgFilter(profile) {
-  if (PLATFORM_WIDE_ANALYTICS_ROLES.includes(profile.role)) return null;
-  return profile.organisation_id || null;
-}
-
-function canSelectOrganisation(profile) {
-  return PLATFORM_WIDE_ANALYTICS_ROLES.includes(profile.role);
-}
-
 function resolveOrgFilter(profile, requestedOrgId) {
-  const forced = getOrgFilter(profile);
+  const forced = organisationFilterFor(profile);
   if (forced) return forced;
-  if (requestedOrgId && canSelectOrganisation(profile)) return requestedOrgId;
+  if (requestedOrgId && canSelectOrganisationInAnalytics(profile)) return requestedOrgId;
   return null;
 }
 
@@ -51,7 +42,7 @@ function lastNDays(n) {
 
 async function getFilterOptions(profile) {
   const organisations = [];
-  if (canSelectOrganisation(profile)) {
+  if (canSelectOrganisationInAnalytics(profile)) {
     const { data } = await supabaseAdmin
       .from('organisations')
       .select('id, name, organisation_type')
@@ -70,7 +61,10 @@ async function getFilterOptions(profile) {
   }
 
   return {
-    can_filter_organisation: canSelectOrganisation(profile),
+    can_filter_organisation: canSelectOrganisationInAnalytics(profile),
+    can_view_permit_charts: canViewPermitInventoryAnalytics(profile),
+    can_view_alert_charts: canViewAlertAnalytics(profile),
+    role_scope: isCheckpointRole(profile.role) ? 'checkpoint' : isSelfScoped(profile.role) ? 'self' : isPlatformWide(profile.role) ? 'platform' : 'organisation',
     organisations,
     periods: [
       { value: 7, label: 'Last 7 days' },
@@ -115,7 +109,20 @@ async function getFilterOptions(profile) {
  * Verification logs: when filtering by employer org or permit status, join permits.
  * Otherwise return all scans in the period (checkpoint officers verify cross-org).
  */
-async function fetchVerificationLogs(filters, orgFilter, since) {
+async function fetchVerificationLogs(filters, orgFilter, since, profile = null) {
+  if (profile && isCheckpointRole(profile.role)) {
+    let logQuery = supabaseAdmin
+      .from('verification_logs')
+      .select('created_at, verification_result, scan_type')
+      .eq('verified_by', profile.id)
+      .gte('created_at', since);
+    if (filters.scan_type) logQuery = logQuery.eq('scan_type', filters.scan_type);
+    if (filters.verification_result) logQuery = logQuery.eq('verification_result', filters.verification_result);
+    const { data, error } = await logQuery;
+    if (error) throw new Error(error.message);
+    return data || [];
+  }
+
   const scopeByPermit = Boolean(orgFilter || filters.permit_status);
 
   let logQuery;
@@ -149,33 +156,39 @@ async function getChartData(profile, query = {}) {
   const orgFilter = resolveOrgFilter(profile, filters.organisation_id);
   const days = lastNDays(filters.days);
 
-  let permitQuery = supabaseAdmin.from('permits').select('status').neq('status', 'archived');
-  if (orgFilter) permitQuery = permitQuery.eq('organisation_id', orgFilter);
-  if (filters.permit_status) permitQuery = permitQuery.eq('status', filters.permit_status);
-  const { data: permits } = await permitQuery;
+  let permitStatusLabels = [];
+  let permitStatusValues = [];
 
-  const statusCounts = {};
-  (permits || []).forEach(p => {
-    statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
-  });
-  const statusOrder = ['active', 'expiring_soon', 'expired', 'revoked', 'pending_verification', 'rejected'];
-  const permitStatusLabels = [];
-  const permitStatusValues = [];
-  statusOrder.forEach(s => {
-    if (statusCounts[s]) {
-      permitStatusLabels.push(s.replace(/_/g, ' '));
-      permitStatusValues.push(statusCounts[s]);
+  if (canViewPermitInventoryAnalytics(profile)) {
+    let permitQuery = supabaseAdmin.from('permits').select('status').neq('status', 'archived');
+    if (orgFilter) permitQuery = permitQuery.eq('organisation_id', orgFilter);
+    if (isSelfScoped(profile.role) && profile.foreign_national_id) {
+      permitQuery = permitQuery.eq('foreign_national_id', profile.foreign_national_id);
     }
-  });
-  Object.keys(statusCounts).forEach(s => {
-    if (!statusOrder.includes(s)) {
-      permitStatusLabels.push(s.replace(/_/g, ' '));
-      permitStatusValues.push(statusCounts[s]);
-    }
-  });
+    if (filters.permit_status) permitQuery = permitQuery.eq('status', filters.permit_status);
+    const { data: permits } = await permitQuery;
+
+    const statusCounts = {};
+    (permits || []).forEach(p => {
+      statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+    });
+    const statusOrder = ['active', 'expiring_soon', 'expired', 'revoked', 'pending_verification', 'rejected'];
+    statusOrder.forEach(s => {
+      if (statusCounts[s]) {
+        permitStatusLabels.push(s.replace(/_/g, ' '));
+        permitStatusValues.push(statusCounts[s]);
+      }
+    });
+    Object.keys(statusCounts).forEach(s => {
+      if (!statusOrder.includes(s)) {
+        permitStatusLabels.push(s.replace(/_/g, ' '));
+        permitStatusValues.push(statusCounts[s]);
+      }
+    });
+  }
 
   const since = `${days[0]}T00:00:00.000Z`;
-  const logs = await fetchVerificationLogs(filters, orgFilter, since);
+  const logs = await fetchVerificationLogs(filters, orgFilter, since, profile);
 
   const trendMap = {};
   days.forEach(d => { trendMap[d] = { total: 0, valid: 0, failed: 0 }; });
@@ -198,19 +211,26 @@ async function getChartData(profile, query = {}) {
   const resultLabels = Object.keys(resultCounts).map(k => k.replace(/_/g, ' '));
   const resultValues = Object.keys(resultCounts).map(k => resultCounts[k]);
 
-  let alertQuery = supabaseAdmin.from('alerts').select('alert_type, priority');
-  if (filters.alert_status && filters.alert_status !== 'all') {
-    alertQuery = alertQuery.eq('status', filters.alert_status);
+  let alertLabels = [];
+  let alertValues = [];
+  if (canViewAlertAnalytics(profile)) {
+    let alertQuery = supabaseAdmin.from('alerts').select('alert_type, priority');
+    if (filters.alert_status && filters.alert_status !== 'all') {
+      alertQuery = alertQuery.eq('status', filters.alert_status);
+    }
+    if (orgFilter) alertQuery = alertQuery.eq('organisation_id', orgFilter);
+    if (isSelfScoped(profile.role) && profile.foreign_national_id) {
+      alertQuery = alertQuery.eq('foreign_national_id', profile.foreign_national_id);
+    }
+    const { data: alerts } = await alertQuery;
+    const alertCounts = {};
+    (alerts || []).forEach(a => {
+      const t = (a.alert_type || 'other').replace(/_/g, ' ');
+      alertCounts[t] = (alertCounts[t] || 0) + 1;
+    });
+    alertLabels = Object.keys(alertCounts);
+    alertValues = Object.values(alertCounts);
   }
-  if (orgFilter) alertQuery = alertQuery.eq('organisation_id', orgFilter);
-  const { data: alerts } = await alertQuery;
-  const alertCounts = {};
-  (alerts || []).forEach(a => {
-    const t = (a.alert_type || 'other').replace(/_/g, ' ');
-    alertCounts[t] = (alertCounts[t] || 0) + 1;
-  });
-  const alertLabels = Object.keys(alertCounts);
-  const alertValues = Object.values(alertCounts);
 
   return {
     permit_status: { labels: permitStatusLabels, values: permitStatusValues },
@@ -244,10 +264,42 @@ async function getSummary(profile, query = {}) {
     if (orgFilter && ['permits', 'foreign_nationals', 'alerts', 'renewal_update_requests'].includes(table)) {
       q = q.eq('organisation_id', orgFilter);
     }
+    if (isSelfScoped(profile.role) && profile.foreign_national_id) {
+      if (table === 'permits' || table === 'alerts' || table === 'renewal_update_requests') {
+        q = q.eq('foreign_national_id', profile.foreign_national_id);
+      }
+      if (table === 'foreign_nationals') {
+        q = q.eq('id', profile.foreign_national_id);
+      }
+    }
     Object.entries(eqFilters).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '') q = q.eq(k, v); });
     const { count } = await q;
     return count || 0;
   };
+
+  if (isCheckpointRole(profile.role)) {
+    const since = `${lastNDays(filters.days)[0]}T00:00:00.000Z`;
+    const logs = await fetchVerificationLogs(filters, null, since, profile);
+    const successful = logs.filter(v => v.verification_result === 'valid' || v.verification_result === 'expiring_soon').length;
+    const failed = logs.filter(v => ['expired', 'revoked', 'not_found', 'suspicious', 'rejected'].includes(v.verification_result)).length;
+    return {
+      total_organisations: 0,
+      total_users: 0,
+      total_foreign_nationals: 0,
+      total_permits: 0,
+      active_permits: 0,
+      expiring_permits: 0,
+      expired_permits: 0,
+      revoked_permits: 0,
+      pending_verification: 0,
+      renewal_requests: 0,
+      successful_verifications: successful,
+      failed_verifications: failed,
+      unresolved_alerts: 0,
+      my_scans_in_period: logs.length,
+      applied_filters: { days: filters.days, scan_type: filters.scan_type, verification_result: filters.verification_result },
+    };
+  }
 
   const permitBase = {};
   if (filters.permit_status) permitBase.status = filters.permit_status;
@@ -276,7 +328,7 @@ async function getSummary(profile, query = {}) {
   ]);
 
   const since = `${lastNDays(filters.days)[0]}T00:00:00.000Z`;
-  const recentLogs = await fetchVerificationLogs(filters, orgFilter, since);
+  const recentLogs = await fetchVerificationLogs(filters, orgFilter, since, profile);
   const recentVerifications = recentLogs
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 200);

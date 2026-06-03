@@ -1,5 +1,6 @@
 const { supabaseAdmin } = require('../config/supabase');
 const { canAccessOrganisation } = require('../middleware/roleMiddleware');
+const { canListAllPermits, isSelfScoped } = require('../utils/accessScope');
 const { generateQrValue, generateRfidTag, computePermitStatus } = require('../utils/expiryCalculator');
 
 const PERMIT_SELECT = `
@@ -12,10 +13,9 @@ const PERMIT_SELECT = `
 async function getAll(profile, filters = {}) {
   let query = supabaseAdmin.from('permits').select(PERMIT_SELECT).order('created_at', { ascending: false });
 
-  if (profile.role === 'foreign_national' && profile.foreign_national_id) {
+  if (isSelfScoped(profile.role) && profile.foreign_national_id) {
     query = query.eq('foreign_national_id', profile.foreign_national_id);
-  } else if (profile.role !== 'system_admin' && profile.organisation_id &&
-    !['verification_officer', 'immigration_officer', 'manager', 'auditor'].includes(profile.role)) {
+  } else if (!canListAllPermits(profile) && profile.organisation_id) {
     query = query.eq('organisation_id', profile.organisation_id);
   }
 
@@ -31,11 +31,10 @@ async function getById(id, profile) {
   const { data, error } = await supabaseAdmin.from('permits').select(PERMIT_SELECT).eq('id', id).single();
   if (error) throw new Error(error.message);
 
-  if (profile.role === 'foreign_national' && data.foreign_national_id !== profile.foreign_national_id) {
+  if (isSelfScoped(profile.role) && data.foreign_national_id !== profile.foreign_national_id) {
     throw new Error('Access denied');
   }
-  if (profile.role !== 'system_admin' && profile.role !== 'foreign_national' &&
-    !['verification_officer', 'immigration_officer', 'manager', 'auditor'].includes(profile.role) &&
+  if (!canListAllPermits(profile) && !isSelfScoped(profile.role) &&
     !canAccessOrganisation(profile, data.organisation_id)) {
     throw new Error('Access denied');
   }
