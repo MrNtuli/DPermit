@@ -33,7 +33,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
     <div class="filter-panel panel-card" *ngIf="filterOptions">
       <div class="filter-header">
         <h2 class="panel-title">Analytics Filters</h2>
-        <p class="filter-subtitle">Charts and KPI cards update automatically when you change a filter</p>
+        <p class="filter-subtitle">Charts update automatically. Permit status filters both permit records and verification scans for matching permits.</p>
       </div>
       <div class="filter-grid">
         <ion-item lines="none" *ngIf="filterOptions.can_filter_organisation">
@@ -58,13 +58,13 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
           </ion-select>
         </ion-item>
         <ion-item lines="none">
-          <ion-select label="Verification result" labelPlacement="stacked" interface="popover"
+          <ion-select label="Verification outcome" labelPlacement="stacked" interface="popover"
             [(ngModel)]="verificationResultSelectValue" (ionChange)="onVerificationResultChange($event.detail.value)">
             <ion-select-option *ngFor="let r of filterOptions.verification_results" [value]="r.value">{{ r.label }}</ion-select-option>
           </ion-select>
         </ion-item>
         <ion-item lines="none">
-          <ion-select label="Permit status" labelPlacement="stacked" interface="popover"
+          <ion-select label="Permit record status" labelPlacement="stacked" interface="popover"
             [(ngModel)]="permitStatusSelectValue" (ionChange)="onPermitStatusChange($event.detail.value)">
             <ion-select-option *ngFor="let s of filterOptions.permit_statuses" [value]="s.value">{{ s.label }}</ion-select-option>
           </ion-select>
@@ -94,7 +94,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
         </div>
         <div class="panel-card chart-panel">
           <h2 class="panel-title">Verification Activity ({{ data.period_days }} days)</h2>
-          <p class="chart-note">Daily scans — filtered by period, organisation, scan type, and result</p>
+          <p class="chart-note">Scans in period — uses permit organisation and permit record status when those filters are set</p>
           <app-chart-canvas *ngIf="trendChart && hasTrendData" [config]="trendChart" [revision]="chartRevision"></app-chart-canvas>
           <p class="empty-chart" *ngIf="!hasTrendData">No verification activity matches the current filters.</p>
         </div>

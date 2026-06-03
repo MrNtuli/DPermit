@@ -129,6 +129,7 @@ async function verifyByNumber(permitNumber, profile, options = {}) {
   await logVerification({
     permitId: permit?.id,
     profile,
+    organisationId: permit?.organisation_id,
     scanType: 'manual',
     result: finalResult,
     note: options.note,
@@ -155,7 +156,16 @@ async function verifyByQr(qrValue, profile, options = {}) {
   let result = computeVerificationResult(permit, qrMatch, true);
   const { result: finalResult, alerts } = await checkSuspiciousActivity(permit, result, 'qr', qrValue, null, profile);
 
-  await logVerification({ permitId: permit?.id, profile, scanType: 'qr', result: finalResult, note: options.note, deviceId: options.deviceId, ipAddress: options.ipAddress });
+  await logVerification({
+    permitId: permit?.id,
+    profile,
+    organisationId: permit?.organisation_id,
+    scanType: 'qr',
+    result: finalResult,
+    note: options.note,
+    deviceId: options.deviceId,
+    ipAddress: options.ipAddress,
+  });
 
   for (const alert of alerts) {
     await alertService.create({ permit_id: permit?.id, foreign_national_id: permit?.foreign_national_id, organisation_id: permit?.organisation_id, ...alert });
@@ -170,7 +180,16 @@ async function verifyByRfid(rfidTag, profile, options = {}) {
   let result = computeVerificationResult(permit, true, rfidMatch);
   const { result: finalResult, alerts } = await checkSuspiciousActivity(permit, result, 'rfid', null, rfidTag, profile);
 
-  await logVerification({ permitId: permit?.id, profile, scanType: 'rfid', result: finalResult, note: options.note, deviceId: options.deviceId, ipAddress: options.ipAddress });
+  await logVerification({
+    permitId: permit?.id,
+    profile,
+    organisationId: permit?.organisation_id,
+    scanType: 'rfid',
+    result: finalResult,
+    note: options.note,
+    deviceId: options.deviceId,
+    ipAddress: options.ipAddress,
+  });
 
   for (const alert of alerts) {
     await alertService.create({ permit_id: permit?.id, foreign_national_id: permit?.foreign_national_id, organisation_id: permit?.organisation_id, ...alert });

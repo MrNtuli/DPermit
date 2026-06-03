@@ -76,8 +76,10 @@ async function getFilterOptions(profile) {
       { value: '', label: 'All results' },
       { value: 'valid', label: 'Valid' },
       { value: 'expiring_soon', label: 'Expiring soon' },
+      { value: 'pending_verification', label: 'Pending verification' },
       { value: 'expired', label: 'Expired' },
       { value: 'revoked', label: 'Revoked' },
+      { value: 'rejected', label: 'Rejected' },
       { value: 'not_found', label: 'Not found' },
       { value: 'suspicious', label: 'Suspicious' },
     ],
@@ -95,6 +97,33 @@ async function getFilterOptions(profile) {
       { value: 'all', label: 'All alerts' },
     ],
   };
+}
+
+/** Verification logs scoped by linked permit (employer org + permit status), not verifier's org. */
+async function fetchVerificationLogs(filters, orgFilter, since) {
+  const scopeByPermit = Boolean(orgFilter || filters.permit_status);
+
+  let logQuery;
+  if (scopeByPermit) {
+    logQuery = supabaseAdmin
+      .from('verification_logs')
+      .select('created_at, verification_result, scan_type, permits!inner(organisation_id, status)')
+      .gte('created_at', since)
+      .not('permit_id', 'is', null);
+    if (orgFilter) logQuery = logQuery.eq('permits.organisation_id', orgFilter);
+    if (filters.permit_status) logQuery = logQuery.eq('permits.status', filters.permit_status);
+  } else {
+    logQuery = supabaseAdmin
+      .from('verification_logs')
+      .select('created_at, verification_result, scan_type')
+      .gte('created_at', since);
+  }
+  if (filters.scan_type) logQuery = logQuery.eq('scan_type', filters.scan_type);
+  if (filters.verification_result) logQuery = logQuery.eq('verification_result', filters.verification_result);
+
+  const { data, error } = await logQuery;
+  if (error) throw new Error(error.message);
+  return data || [];
 }
 
 async function getChartData(profile, query = {}) {
@@ -128,14 +157,7 @@ async function getChartData(profile, query = {}) {
   });
 
   const since = `${days[0]}T00:00:00.000Z`;
-  let logQuery = supabaseAdmin
-    .from('verification_logs')
-    .select('created_at, verification_result, scan_type')
-    .gte('created_at', since);
-  if (orgFilter) logQuery = logQuery.eq('organisation_id', orgFilter);
-  if (filters.scan_type) logQuery = logQuery.eq('scan_type', filters.scan_type);
-  if (filters.verification_result) logQuery = logQuery.eq('verification_result', filters.verification_result);
-  const { data: logs } = await logQuery;
+  const logs = await fetchVerificationLogs(filters, orgFilter, since);
 
   const trendMap = {};
   days.forEach(d => { trendMap[d] = { total: 0, valid: 0, failed: 0 }; });
@@ -236,16 +258,10 @@ async function getSummary(profile, query = {}) {
   ]);
 
   const since = `${lastNDays(filters.days)[0]}T00:00:00.000Z`;
-  let recentLogQuery = supabaseAdmin
-    .from('verification_logs')
-    .select('verification_result')
-    .gte('created_at', since)
-    .order('created_at', { ascending: false })
-    .limit(200);
-  if (orgFilter) recentLogQuery = recentLogQuery.eq('organisation_id', orgFilter);
-  if (filters.scan_type) recentLogQuery = recentLogQuery.eq('scan_type', filters.scan_type);
-  if (filters.verification_result) recentLogQuery = recentLogQuery.eq('verification_result', filters.verification_result);
-  const { data: recentVerifications } = await recentLogQuery;
+  const recentLogs = await fetchVerificationLogs(filters, orgFilter, since);
+  const recentVerifications = recentLogs
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 200);
 
   const successful = recentVerifications?.filter(v => v.verification_result === 'valid').length || 0;
   const failed = recentVerifications?.filter(v => ['expired', 'revoked', 'not_found', 'suspicious'].includes(v.verification_result)).length || 0;
