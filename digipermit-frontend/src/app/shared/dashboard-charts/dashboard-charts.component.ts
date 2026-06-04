@@ -120,7 +120,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
       <p class="active-filters" *ngIf="activeFilterSummary">{{ activeFilterSummary }}</p>
     </div>
 
-    <div class="charts-section charts-busy" *ngIf="data">
+    <div class="charts-section" [class.charts-busy]="loading" *ngIf="data">
       <div class="charts-grid">
         <div class="panel-card chart-panel chart-export-permit-status" *ngIf="showPermitCharts">
           <h2 class="panel-title">Permit Status Distribution</h2>
@@ -225,10 +225,10 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
     }
     .charts-section { margin-bottom: 24px; }
     .charts-section.charts-busy .chart-panel {
-      opacity: 0.55;
+      opacity: 0.72;
+      pointer-events: none;
       transition: opacity 0.2s ease;
     }
-    .charts-busy { opacity: 1; transition: opacity 0.15s; }
     .charts-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -681,7 +681,7 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
               label: 'Total scans',
               data: [...d.verification_trend.total],
               order: 3,
-              borderColor: 'rgba(15, 61, 46, 0.5)',
+              borderColor: '#0F3D2E',
               backgroundColor: 'transparent',
               borderWidth: 2,
               borderDash: [7, 5],
@@ -689,14 +689,14 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
               tension: 0.35,
               pointRadius: 3,
               pointHoverRadius: 5,
-              pointBackgroundColor: 'rgba(15, 61, 46, 0.4)',
+              pointBackgroundColor: '#0F3D2E',
             },
             {
               label: 'Valid',
               data: [...d.verification_trend.valid],
               order: 2,
               borderColor: '#1F7A5A',
-              backgroundColor: 'rgba(31, 122, 90, 0.08)',
+              backgroundColor: 'transparent',
               borderWidth: 3,
               fill: false,
               tension: 0.35,
@@ -711,7 +711,7 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
               data: [...d.verification_trend.failed],
               order: 1,
               borderColor: '#D64545',
-              backgroundColor: 'rgba(214, 69, 69, 0.08)',
+              backgroundColor: 'transparent',
               borderWidth: 3,
               fill: false,
               tension: 0.35,

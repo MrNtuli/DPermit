@@ -22,12 +22,10 @@ Chart.register(
       width: 100%;
       height: 300px;
       min-height: 300px;
-      opacity: 0;
-      transform: translateY(6px);
-      transition: opacity 0.45s ease, transform 0.45s ease;
+      transform: translateY(4px);
+      transition: transform 0.35s ease;
     }
     .chart-wrap.chart-ready {
-      opacity: 1;
       transform: translateY(0);
     }
     @media (min-width: 768px) {
