@@ -14,8 +14,6 @@ import {
   DashboardChartData,
   ROLE_LABELS,
 } from '../../interfaces/models';
-import { mergeChartAnimation } from './chart-animation.util';
-
 const STATUS_COLORS: Record<string, string> = {
   active: '#1F7A5A',
   'expiring soon': '#F59E0B',
@@ -120,7 +118,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
       <p class="active-filters" *ngIf="activeFilterSummary">{{ activeFilterSummary }}</p>
     </div>
 
-    <div class="charts-section" [class.charts-busy]="loading" *ngIf="data">
+    <div class="charts-section" *ngIf="data">
       <div class="charts-grid">
         <div class="panel-card chart-panel chart-export-permit-status" *ngIf="showPermitCharts">
           <h2 class="panel-title">Permit Status Distribution</h2>
@@ -130,7 +128,7 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
         </div>
         <div class="panel-card chart-panel chart-export-verification-trend">
           <h2 class="panel-title">Verification Activity ({{ data.period_days }} days)</h2>
-          <p class="chart-note">Solid lines = valid &amp; failed scans; dashed line = total. Hover a day for all three values.</p>
+          <p class="chart-note">Checkpoint scans in the selected period (UTC days) — updates after each verification</p>
           <app-chart-canvas *ngIf="trendChart && hasTrendData" [config]="trendChart" [revision]="chartRevision"></app-chart-canvas>
           <p class="empty-chart" *ngIf="!hasTrendData">{{ emptyVerificationHint }}</p>
         </div>
@@ -224,11 +222,6 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
       margin: 10px 0 0;
     }
     .charts-section { margin-bottom: 24px; }
-    .charts-section.charts-busy .chart-panel {
-      opacity: 0.72;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-    }
     .charts-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -661,12 +654,12 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
           labels: d.permit_status.labels.map(l => this.titleCase(l)),
           datasets: [{ data: [...d.permit_status.values], backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }],
         },
-        options: mergeChartAnimation({
+        options: {
           responsive: true,
           maintainAspectRatio: false,
           layout: CHART_LAYOUT,
           plugins: { legend: LEGEND_BOTTOM },
-        }),
+        },
       };
     }
 
@@ -680,67 +673,37 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
             {
               label: 'Total scans',
               data: [...d.verification_trend.total],
-              order: 3,
               borderColor: '#0F3D2E',
-              backgroundColor: 'transparent',
-              borderWidth: 2,
-              borderDash: [7, 5],
-              fill: false,
-              tension: 0.35,
-              pointRadius: 3,
-              pointHoverRadius: 5,
-              pointBackgroundColor: '#0F3D2E',
+              backgroundColor: 'rgba(234, 246, 240, 0.8)',
+              fill: true,
+              tension: 0.3,
             },
             {
               label: 'Valid',
               data: [...d.verification_trend.valid],
-              order: 2,
               borderColor: '#1F7A5A',
               backgroundColor: 'transparent',
-              borderWidth: 3,
-              fill: false,
-              tension: 0.35,
-              pointRadius: 5,
-              pointHoverRadius: 7,
-              pointBackgroundColor: '#1F7A5A',
-              pointBorderColor: '#ffffff',
-              pointBorderWidth: 2,
+              tension: 0.3,
             },
             {
               label: 'Failed / flagged',
               data: [...d.verification_trend.failed],
-              order: 1,
               borderColor: '#D64545',
               backgroundColor: 'transparent',
-              borderWidth: 3,
-              fill: false,
-              tension: 0.35,
-              pointRadius: 5,
-              pointHoverRadius: 7,
-              pointBackgroundColor: '#D64545',
-              pointBorderColor: '#ffffff',
-              pointBorderWidth: 2,
+              tension: 0.3,
             },
           ],
         },
-        options: mergeChartAnimation({
+        options: {
           responsive: true,
           maintainAspectRatio: false,
           layout: CHART_LAYOUT,
-          interaction: { mode: 'index', intersect: false },
           scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { stepSize: 1, font: { size: 10 } },
-              grid: { color: 'rgba(226, 232, 240, 0.8)' },
-            },
+            y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } },
             x: { ticks: CATEGORY_TICKS, grid: { display: false } },
           },
-          plugins: {
-            legend: LEGEND_BOTTOM,
-            tooltip: { mode: 'index', intersect: false },
-          },
-        }),
+          plugins: { legend: LEGEND_BOTTOM },
+        },
       };
     }
 
@@ -756,7 +719,7 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
             borderRadius: 6,
           }],
         },
-        options: mergeChartAnimation({
+        options: {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
@@ -766,7 +729,7 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
             x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } },
             y: { ticks: { font: { size: 10 }, autoSkip: false } },
           },
-        }),
+        },
       };
     }
 
@@ -782,7 +745,7 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
             borderRadius: 6,
           }],
         },
-        options: mergeChartAnimation({
+        options: {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
@@ -792,7 +755,7 @@ export class DashboardChartsComponent implements OnInit, OnDestroy {
             x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } },
             y: { ticks: { font: { size: 10 } } },
           },
-        }),
+        },
       };
     }
   }

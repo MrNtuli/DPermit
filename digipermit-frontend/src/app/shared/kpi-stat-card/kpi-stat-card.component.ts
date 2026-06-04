@@ -1,15 +1,15 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { KpiTone, resolveKpiMeta } from './kpi-meta.util';
 
 @Component({
   selector: 'app-kpi-stat',
   template: `
-    <article class="kpi-stat" [class]="'tone-' + meta.tone" [class.kpi-animating]="isAnimating">
+    <article class="kpi-stat" [class]="'tone-' + meta.tone">
       <div class="kpi-stat-icon" aria-hidden="true">
         <ion-icon [name]="meta.icon"></ion-icon>
       </div>
       <div class="kpi-stat-body">
-        <p class="kpi-stat-value">{{ animatedDisplay }}</p>
+        <p class="kpi-stat-value">{{ displayValue }}</p>
         <p class="kpi-stat-label">{{ label }}</p>
       </div>
     </article>
@@ -37,11 +37,7 @@ import { KpiTone, resolveKpiMeta } from './kpi-meta.util';
       box-shadow: var(--dp-shadow-sm, 0 1px 3px rgba(15, 61, 46, 0.06));
       position: relative;
       overflow: hidden;
-      transition: box-shadow 0.2s ease, transform 0.2s ease;
-    }
-
-    .kpi-stat.kpi-animating .kpi-stat-value {
-      color: var(--dp-emerald, #1f7a5a);
+      transition: box-shadow 0.15s ease, transform 0.15s ease;
     }
 
     .kpi-stat::before {
@@ -86,8 +82,6 @@ import { KpiTone, resolveKpiMeta } from './kpi-meta.util';
       line-height: 1.1;
       color: var(--kpi-value-color);
       letter-spacing: -0.02em;
-      font-variant-numeric: tabular-nums;
-      transition: color 0.25s ease;
     }
 
     .kpi-stat-label {
@@ -137,74 +131,19 @@ import { KpiTone, resolveKpiMeta } from './kpi-meta.util';
   `],
   standalone: false,
 })
-export class KpiStatCardComponent implements OnInit, OnChanges, OnDestroy {
+export class KpiStatCardComponent {
   @Input() label = '';
   @Input() value: number | string = 0;
   @Input() tone?: KpiTone;
   @Input() icon?: string;
 
-  animatedDisplay: string | number = 0;
-  isAnimating = false;
-
-  private displayCurrent = 0;
-  private rafId = 0;
-  private animTimeout?: ReturnType<typeof setTimeout>;
-
   get meta() {
     return resolveKpiMeta(this.label, this.tone, this.icon);
   }
 
-  ngOnInit() {
-    this.displayCurrent = 0;
-    this.animateTo(this.targetNumber(), true);
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if ('value' in changes && !changes['value'].firstChange) {
-      this.animateTo(this.targetNumber(), false);
-    }
-  }
-
-  ngOnDestroy() {
-    cancelAnimationFrame(this.rafId);
-    if (this.animTimeout) clearTimeout(this.animTimeout);
-  }
-
-  private targetNumber(): number {
-    const v = Number(this.value);
-    return Number.isFinite(v) ? Math.max(0, Math.round(v)) : 0;
-  }
-
-  private animateTo(target: number, instant: boolean) {
-    cancelAnimationFrame(this.rafId);
-    if (this.animTimeout) clearTimeout(this.animTimeout);
-
-    if (instant || target === this.displayCurrent) {
-      this.displayCurrent = target;
-      this.animatedDisplay = target;
-      this.isAnimating = false;
-      return;
-    }
-
-    this.isAnimating = true;
-    const start = this.displayCurrent;
-    const diff = target - start;
-    const duration = 720;
-    const t0 = performance.now();
-
-    const step = (now: number) => {
-      const progress = Math.min(1, (now - t0) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      this.displayCurrent = Math.round(start + diff * eased);
-      this.animatedDisplay = this.displayCurrent;
-      if (progress < 1) {
-        this.rafId = requestAnimationFrame(step);
-      } else {
-        this.displayCurrent = target;
-        this.animatedDisplay = target;
-        this.animTimeout = setTimeout(() => { this.isAnimating = false; }, 120);
-      }
-    };
-    this.rafId = requestAnimationFrame(step);
+  get displayValue(): string | number {
+    const v = this.value;
+    if (v === null || v === undefined || v === '') return 0;
+    return v;
   }
 }
