@@ -1,0 +1,7 @@
+id,permit_number,status,expiry_date,days_until_expiry,foreign_national_name,nationality,permit_type,organisation_name,organisation_type
+c3000001-0000-4000-8000-000000000003,WP-2023-ACME-003,expired,2025-01-01,-519,Lukas MÃ¼ller,German,General work visa,Acme Global Industries (Pty) Ltd,employer
+c3000001-0000-4000-8000-000000000008,MT-2024-CLINIC-001,pending_verification,2025-08-01,-307,Ahmed Hassan,Egyptian,Medical-treatment visa,City Wellness Clinic,clinic
+c3000001-0000-4000-8000-000000000007,VV-2024-METRO-001,expired,2025-12-31,-155,Sofia Petrov,Bulgarian,Visitor visa,Metro University of Technology,university
+c8b9ddc7-48c4-4761-9bf8-371ac19d2c5b,,pending_verification,2026-06-02,-2,Test Employee,Kenyan,Critical-skills work visa,Acme Global Industries (Pty) Ltd,employer
+c3000001-0000-4000-8000-000000000006,SV-2024-METRO-002,expiring_soon,2026-06-10,6,Chen Wei,Chinese,Study visa,Metro University of Technology,university
+c3000001-0000-4000-8000-000000000001,WP-2024-ACME-001,expiring_soon,2026-06-15,11,James Okonkwo,Nigerian,General work visa,Acme Global Industries (Pty) Ltd,employer

@@ -1,0 +1,31 @@
+{
+  "name": "DigiPermit Government",
+  "dataColors": [
+    "#0F3D2E",
+    "#1F7A5A",
+    "#F59E0B",
+    "#D64545",
+    "#334155",
+    "#64748B",
+    "#EAF6F0",
+    "#94A3B8"
+  ],
+  "foreground": "#334155",
+  "foregroundNeutralSecondary": "#64748B",
+  "background": "#F8FAFC",
+  "backgroundLight": "#FFFFFF",
+  "backgroundNeutral": "#E2E8F0",
+  "tableAccent": "#1F7A5A",
+  "good": "#1F7A5A",
+  "neutral": "#F59E0B",
+  "bad": "#D64545",
+  "maximum": "#0F3D2E",
+  "center": "#F59E0B",
+  "minimum": "#D64545",
+  "textClasses": {
+    "callout": { "fontSize": 24, "fontFace": "Segoe UI Semibold", "color": "#0F3D2E" },
+    "title": { "fontSize": 14, "fontFace": "Segoe UI Semibold", "color": "#0F3D2E" },
+    "header": { "fontSize": 12, "fontFace": "Segoe UI Semibold", "color": "#334155" },
+    "label": { "fontSize": 10, "fontFace": "Segoe UI", "color": "#64748B" }
+  }
+}

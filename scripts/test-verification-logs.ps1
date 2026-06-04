@@ -26,7 +26,7 @@ if ($latest.verified_by -ne $profileId) {
   exit 1
 }
 if ($ageMin -gt 5) {
-  Write-Host "[FAIL] Latest log is older than 5 minutes — new scan may not be visible to this user" -ForegroundColor Red
+  Write-Host "[FAIL] Latest log is older than 5 minutes - new scan may not be visible to this user" -ForegroundColor Red
   Write-Host "       Latest: $($latest.created_at) permit $($latest.permits.permit_number)" -ForegroundColor Yellow
   exit 1
 }

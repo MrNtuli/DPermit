@@ -1,8 +1,20 @@
 # Power BI Setup for DigiPermit
 
+## Quick start (live Supabase)
+
+**Primary guide:** [power-bi/POWER-BI-LIVE-SUPABASE.md](./power-bi/POWER-BI-LIVE-SUPABASE.md)
+
+1. Apply views: `digipermit-backend/database/views/analytics_views.sql`
+2. Power BI → PostgreSQL → session pooler host → load seven `vw_*` views
+3. Build report: [power-bi/POWER-BI-DASHBOARD-BUILD-GUIDE.md](./power-bi/POWER-BI-DASHBOARD-BUILD-GUIDE.md)
+4. Theme: import `power-bi/DigiPermit-Theme.json`
+5. Before demo: **Home → Refresh**
+
+CSV fallback: `npm run export:powerbi` → [power-bi/POWER-BI-CSV-IMPORT.md](./power-bi/POWER-BI-CSV-IMPORT.md)
+
 ## Overview
 
-DigiPermit exposes analytics through **SQL views** in Supabase PostgreSQL and **REST API endpoints**. Power BI can connect directly to the database views for live dashboards.
+DigiPermit exposes analytics through **SQL views** in Supabase PostgreSQL and **REST API endpoints**. Power BI can connect directly to the database views for live dashboards, or import CSV exports from the same views.
 
 ## Prerequisites
 

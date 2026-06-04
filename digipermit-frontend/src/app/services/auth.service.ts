@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { ApiService } from './api.service';
-import { ROLE_DASHBOARD, UserProfile } from '../interfaces/models';
+import { ApiResponse, ROLE_DASHBOARD, UserProfile } from '../interfaces/models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -50,6 +50,18 @@ export class AuthService {
         }
       })
     );
+  }
+
+  forgotPassword(email: string): Observable<ApiResponse<{ message: string }>> {
+    return this.api.post<{ message: string }>('/auth/forgot-password', { email });
+  }
+
+  resetPassword(access_token: string, new_password: string): Observable<unknown> {
+    return this.api.post('/auth/reset-password', { access_token, new_password });
+  }
+
+  changePassword(current_password: string, new_password: string): Observable<unknown> {
+    return this.api.post('/auth/change-password', { current_password, new_password });
   }
 
   hasRole(...roles: string[]): boolean {

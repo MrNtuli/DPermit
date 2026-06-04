@@ -24,6 +24,7 @@ import { AuthService } from '../../services/auth.service';
             </ion-item>
             <ion-button expand="block" type="submit" [disabled]="form.invalid" class="submit-btn">Sign In</ion-button>
           </form>
+          <ion-button fill="clear" routerLink="/forgot-password" size="small" class="forgot-link">Forgot password?</ion-button>
           <ion-note class="demo-hint">
             Demo: hr&#64;acmeglobal.demo / verify&#64;digipermit.demo — Password: Demo&#64;12345
           </ion-note>
@@ -36,7 +37,10 @@ import { AuthService } from '../../services/auth.service';
       </div>
     </ion-content>
   `,
-  styles: [`:host { display: block; }`],
+  styles: [`
+    :host { display: block; }
+    .forgot-link { margin: 4px 0 8px; font-size: 0.85rem; }
+  `],
   standalone: false,
 })
 export class LoginPage {

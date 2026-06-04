@@ -1,0 +1,11 @@
+verification_date,scan_type,verification_result,attempt_count
+2026-06-04,qr,pending_verification,1
+2026-06-03,manual,expiring_soon,1
+2026-06-03,qr,expiring_soon,7
+2026-06-03,qr,pending_verification,2
+2026-06-02,qr,not_found,1
+2026-06-01,manual,expiring_soon,1
+2026-05-31,manual,expired,1
+2026-05-31,manual,valid,1
+2026-05-31,qr,not_found,1
+2026-05-31,qr,revoked,1

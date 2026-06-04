@@ -1,0 +1,7 @@
+status,permit_count
+active,3
+expiring_soon,2
+expired,2
+revoked,1
+rejected,1
+pending_verification,4

@@ -1,100 +1,82 @@
-# Power BI Dashboard — Step-by-Step Build Guide (30 minutes)
+# Power BI Dashboard — Build guide (~30 minutes)
 
-Complete this for the **Week 6 live demo** (IS3 mandatory).
-
----
-
-## Prerequisites
-
-- Power BI Desktop installed (free)
-- Supabase project with `setup-all.sql` already run
-- Database password from Supabase project creation
+**Connect first:** [POWER-BI-LIVE-SUPABASE.md](./POWER-BI-LIVE-SUPABASE.md) (live Supabase PostgreSQL).  
+CSV fallback only: [POWER-BI-CSV-IMPORT.md](./POWER-BI-CSV-IMPORT.md).
 
 ---
 
-## Step 1: Connect to PostgreSQL
+## Part A — Connect data (live Supabase)
 
-1. Open **Power BI Desktop**
-2. **Get data** → **PostgreSQL database**
-3. Server: `db.uafgtzemigqphejuscsu.supabase.co`
-4. Database: `postgres`
-5. Data connectivity mode: **Import** (recommended for demo)
-6. Username: `postgres`
-7. Password: your Supabase database password
-8. Select these tables/views:
-   - `vw_permit_status_summary`
-   - `vw_expiring_permits`
-   - `vw_verification_summary`
-   - `vw_alert_summary`
-   - `vw_employer_compliance`
-   - `vw_university_compliance`
-   - `vw_iot_scan_summary`
+Complete **[POWER-BI-LIVE-SUPABASE.md](./POWER-BI-LIVE-SUPABASE.md)** Steps 1–4, then return here.
 
-> Alternative: copy M queries from `DigiPermit-Queries.pq`
+Quick reference — load these seven views only:
+
+- `vw_permit_status_summary`
+- `vw_expiring_permits`
+- `vw_verification_summary`
+- `vw_alert_summary`
+- `vw_employer_compliance`
+- `vw_university_compliance`
+- `vw_iot_scan_summary`
+
+Use the **session pooler** host and user `postgres.uafgtzemigqphejuscsu` from Supabase Database settings (not the API keys in `.env`).
 
 ---
 
-## Step 2: Page 1 — Permit Compliance Overview
+## Part B — Theme and summary row
 
-1. Add **Donut chart**
-   - Legend: `status` (from vw_permit_status_summary)
-   - Values: `permit_count`
-   - Title: `Permit Status Distribution`
-
-2. Add **Table**
-   - Source: vw_expiring_permits
-   - Columns: foreign_national_name, permit_number, permit_type, days_until_expiry, organisation_name
-   - Title: `Permits Expiring Within 90 Days`
-   - Sort by days_until_expiry ascending
+1. **View → Themes → Browse** → `DigiPermit-Theme.json`
+2. Add a report page **Executive Summary** (optional, good for demo open):
+   - **Card:** `Total Permits` measure (see `DigiPermit-Measures.dax`)
+   - **Card:** `Active Permits`
+   - **Card:** `Expiring Soon Permits`
+   - **Card:** `Unresolved Alerts`
+   - **Donut:** `vw_permit_status_summary` — Legend `status`, Values `permit_count`
 
 ---
 
-## Step 3: Page 2 — Verification Activity
+## Part C — Four dashboard pages
 
-1. Add **Stacked column chart**
-   - Axis: verification_date
-   - Legend: scan_type
-   - Values: attempt_count
-   - Source: vw_verification_summary
+### Page 1 — Permit compliance overview
 
-2. Add **Clustered bar chart**
-   - Axis: verification_result
-   - Values: attempt_count
+| Visual | Fields |
+|--------|--------|
+| **Donut chart** | Legend: `status`, Values: `permit_count` — source `vw_permit_status_summary` |
+| **Table** | `foreign_national_name`, `permit_number`, `permit_type`, `days_until_expiry`, `organisation_name` — source `vw_expiring_permits`, sort `days_until_expiry` ascending |
 
----
+Title: *Permit Status Distribution* / *Expiring Within 90 Days*
 
-## Step 4: Page 3 — Organisation Compliance
+### Page 2 — Verification activity
 
-1. Add **Clustered bar chart** (employer)
-   - Source: vw_employer_compliance
-   - Axis: organisation_name
-   - Values: active_permits, expiring_soon, expired_permits
+| Visual | Fields |
+|--------|--------|
+| **Stacked column** | Axis: `verification_date`, Legend: `scan_type`, Values: `attempt_count` |
+| **Clustered bar** | Axis: `verification_result`, Values: `attempt_count` |
 
-2. Add **Card visuals**
-   - Total students (university view)
-   - Expired study visas
+Source: `vw_verification_summary`
 
----
+### Page 3 — Organisation compliance
 
-## Step 5: Page 4 — Alerts & IoT
+| Visual | Fields |
+|--------|--------|
+| **Clustered bar** | Axis: `organisation_name`, Values: `active_permits`, `expiring_soon`, `expired_permits` — `vw_employer_compliance` |
+| **Clustered bar** | Axis: `organisation_name`, Values: `active_study_visas`, `expiring_soon`, `expired_study_visas` — `vw_university_compliance` |
+| **Cards** | `total_students`, `expired_study_visas` (university table) |
 
-1. Add **Matrix** from vw_alert_summary
-   - Rows: alert_type
-   - Columns: priority
-   - Values: alert_count
+### Page 4 — Alerts & IoT
 
-2. Add **Line chart** from vw_iot_scan_summary
-   - Axis: scan_date
-   - Values: scan_count
-   - Legend: scan_type
+| Visual | Fields |
+|--------|--------|
+| **Matrix** | Rows: `alert_type`, Columns: `priority`, Values: `alert_count` — `vw_alert_summary` |
+| **Line chart** | Axis: `scan_date`, Values: `scan_count`, Legend: `scan_type` — `vw_iot_scan_summary` |
 
 ---
 
-## Step 6: Save and rehearse
+## Part D — Finish
 
-1. Save as `DigiPermit-Analytics.pbix` in `docs/power-bi/`
-2. **Refresh** data before demo (Home → Refresh)
-3. During presentation: show Page 1 → Page 2 → mention live Supabase connection
+1. Save as **`DigiPermit-Analytics.pbix`** in `docs/power-bi/`
+2. **Home → Refresh** before the live demo
+3. Presentation flow: Executive Summary (or Page 1) → Page 2 → Page 3 → mention same DB as web app
 
 ---
 
@@ -102,14 +84,15 @@ Complete this for the **Week 6 live demo** (IS3 mandatory).
 
 | Issue | Fix |
 |-------|-----|
-| Cannot connect | Use Session pooler host from Supabase Database settings |
-| Views empty | Re-run seeds; verify permits exist in Table Editor |
-| SSL error | Enable SSL in connection options |
+| Cannot connect to PostgreSQL | Use Session pooler host; or use CSV path |
+| Views empty | Run seeds + `analytics_views.sql`; export script should show row counts |
+| SSL error | Enable SSL; try port 5432 on pooler connection string |
+| `status` not recognized in DAX | Table name must be `vw_permit_status_summary` exactly |
 
 ---
 
 ## Demo talking points
 
-- "Power BI reads directly from our 3NF PostgreSQL views — same data as the live app."
-- "Executives see expiry forecast without manual spreadsheet work."
-- "Verification trends show QR vs RFID vs manual adoption."
+- “Analytics views sit on our normalised PostgreSQL schema — same data the Node API serves.”
+- “Employers and universities get compliance bars without exporting spreadsheets.”
+- “Verification page shows QR vs manual vs RFID volume from `verification_logs`.”

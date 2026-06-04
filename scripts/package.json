@@ -1,0 +1,13 @@
+{
+  "name": "dpermit-doc-tools",
+  "private": true,
+  "description": "Markdown to PDF conversion for DigiPermit documentation",
+  "scripts": {
+    "pdf": "node generate-pdfs.js",
+    "pdf:final": "node generate-pdfs.js --final-only"
+  },
+  "devDependencies": {
+    "marked": "^15.0.7",
+    "puppeteer": "^24.2.1"
+  }
+}

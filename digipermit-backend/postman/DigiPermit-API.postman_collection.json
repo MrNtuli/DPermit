@@ -27,6 +27,9 @@
             "url": "{{baseUrl}}/auth/login"
           }
         },
+        { "name": "Forgot Password", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"verify@digipermit.demo\"\n}" }, "url": "{{baseUrl}}/auth/forgot-password" } },
+        { "name": "Reset Password", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"access_token\": \"PASTE_FROM_EMAIL_LINK\",\n  \"new_password\": \"NewDemo@12345\"\n}" }, "url": "{{baseUrl}}/auth/reset-password" } },
+        { "name": "Change Password", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"current_password\": \"Demo@12345\",\n  \"new_password\": \"NewDemo@12345\"\n}" }, "url": "{{baseUrl}}/auth/change-password" } },
         { "name": "Get Profile", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/auth/profile" } },
         { "name": "Logout", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/auth/logout" } }
       ]

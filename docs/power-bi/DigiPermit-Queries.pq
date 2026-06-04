@@ -1,63 +1,75 @@
-// DigiPermit Power BI — Power Query (M) scripts
-// Paste each block in Power BI Desktop: Home → Transform data → New Source → Blank Query → Advanced Editor
-// Replace Server, Database, User, Password with your Supabase connection details.
-// Supabase: Settings → Database → Connection string (use Session pooler or Direct connection)
+// DigiPermit Power BI — Power Query (M) for LIVE Supabase
+// Guide: POWER-BI-LIVE-SUPABASE.md
+//
+// 1. Create parameters (Home → Manage Parameters):
+//    - PBI_Server = your SESSION POOLER host from Supabase Database settings
+//      e.g. aws-0-eu-central-1.pooler.supabase.com
+//      (NOT the API URL; prefer pooler over db.uafgtzemigqphejuscsu.supabase.co on Windows)
+//    - PBI_Database = postgres
+//
+// 2. First run prompts for Database auth:
+//    User: postgres.uafgtzemigqphejuscsu  (pooler)  OR  postgres  (direct)
+//    Password: Supabase → Project Settings → Database → Database password
+//
+// 3. Paste ONE query below per blank query, or use Get Data → PostgreSQL and tick views in Navigator.
 
-// ========== SHARED: PostgreSQL connection function ==========
+// ========== Shared connection (reference query — name it "SupabaseSource") ==========
 /*
 let
-    Source = PostgreSQL.Database("db.uafgtzemigqphejuscsu.supabase.co", "postgres", [
-        CreateNavigationProperties = false
-    ])
+    Source = PostgreSQL.Database(PBI_Server, PBI_Database, [CreateNavigationProperties = false])
 in
     Source
 */
 
-// ========== QUERY 1: Permit Status Summary ==========
+// ========== QUERY: Permit Status Summary ==========
 let
-    Source = PostgreSQL.Database("db.uafgtzemigqphejuscsu.supabase.co", "postgres"),
-    vw_permit_status_summary = Source{[Schema="public",Item="vw_permit_status_summary"]}[Data]
+    Source = PostgreSQL.Database(PBI_Server, PBI_Database),
+    vw_permit_status_summary = Source{[Schema="public", Item="vw_permit_status_summary"]}[Data]
 in
     vw_permit_status_summary
 
-// ========== QUERY 2: Expiring Permits ==========
+// ========== QUERY: Expiring Permits ==========
 let
-    Source = PostgreSQL.Database("db.uafgtzemigqphejuscsu.supabase.co", "postgres"),
-    vw_expiring_permits = Source{[Schema="public",Item="vw_expiring_permits"]}[Data]
+    Source = PostgreSQL.Database(PBI_Server, PBI_Database),
+    vw_expiring_permits = Source{[Schema="public", Item="vw_expiring_permits"]}[Data]
 in
     vw_expiring_permits
 
-// ========== QUERY 3: Verification Summary ==========
+// ========== QUERY: Verification Summary ==========
 let
-    Source = PostgreSQL.Database("db.uafgtzemigqphejuscsu.supabase.co", "postgres"),
-    vw_verification_summary = Source{[Schema="public",Item="vw_verification_summary"]}[Data]
+    Source = PostgreSQL.Database(PBI_Server, PBI_Database),
+    vw_verification_summary = Source{[Schema="public", Item="vw_verification_summary"]}[Data]
 in
     vw_verification_summary
 
-// ========== QUERY 4: Alert Summary ==========
+// ========== QUERY: Alert Summary ==========
 let
-    Source = PostgreSQL.Database("db.uafgtzemigqphejuscsu.supabase.co", "postgres"),
-    vw_alert_summary = Source{[Schema="public",Item="vw_alert_summary"]}[Data]
+    Source = PostgreSQL.Database(PBI_Server, PBI_Database),
+    vw_alert_summary = Source{[Schema="public", Item="vw_alert_summary"]}[Data]
 in
     vw_alert_summary
 
-// ========== QUERY 5: Employer Compliance ==========
+// ========== QUERY: Employer Compliance ==========
 let
-    Source = PostgreSQL.Database("db.uafgtzemigqphejuscsu.supabase.co", "postgres"),
-    vw_employer_compliance = Source{[Schema="public",Item="vw_employer_compliance"]}[Data]
+    Source = PostgreSQL.Database(PBI_Server, PBI_Database),
+    vw_employer_compliance = Source{[Schema="public", Item="vw_employer_compliance"]}[Data]
 in
     vw_employer_compliance
 
-// ========== QUERY 6: University Compliance ==========
+// ========== QUERY: University Compliance ==========
 let
-    Source = PostgreSQL.Database("db.uafgtzemigqphejuscsu.supabase.co", "postgres"),
-    vw_university_compliance = Source{[Schema="public",Item="vw_university_compliance"]}[Data]
+    Source = PostgreSQL.Database(PBI_Server, PBI_Database),
+    vw_university_compliance = Source{[Schema="public", Item="vw_university_compliance"]}[Data]
 in
     vw_university_compliance
 
-// ========== QUERY 7: IoT Scan Summary ==========
+// ========== QUERY: IoT Scan Summary ==========
 let
-    Source = PostgreSQL.Database("db.uafgtzemigqphejuscsu.supabase.co", "postgres"),
-    vw_iot_scan_summary = Source{[Schema="public",Item="vw_iot_scan_summary"]}[Data]
+    Source = PostgreSQL.Database(PBI_Server, PBI_Database),
+    vw_iot_scan_summary = Source{[Schema="public", Item="vw_iot_scan_summary"]}[Data]
 in
     vw_iot_scan_summary
+
+// --- Direct connection fallback (if pooler unavailable) ---
+// Replace PBI_Server with: "db.uafgtzemigqphejuscsu.supabase.co"
+// User when prompted: postgres

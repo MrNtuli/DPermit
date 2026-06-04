@@ -4,11 +4,15 @@ import { ShellComponent } from './layouts/shell/shell.component';
 import { AuthGuard, AreaGuard, GuestGuard } from './guards/auth.guard';
 import { LandingPage } from './pages/auth/landing.page';
 import { LoginPage } from './pages/auth/login.page';
+import { ForgotPasswordPage } from './pages/auth/forgot-password.page';
+import { ResetPasswordPage } from './pages/auth/reset-password.page';
 import { AccessDeniedPage } from './pages/auth/profile.page';
 
 const routes: Routes = [
   { path: 'welcome', component: LandingPage, canActivate: [GuestGuard] },
   { path: 'login', component: LoginPage, canActivate: [GuestGuard] },
+  { path: 'forgot-password', component: ForgotPasswordPage, canActivate: [GuestGuard] },
+  { path: 'reset-password', component: ResetPasswordPage, canActivate: [GuestGuard] },
   { path: 'access-denied', component: AccessDeniedPage },
   {
     path: '',

@@ -39,7 +39,7 @@ Hosted demo (after setup):
 - **App:** https://mrntuli.github.io/DPermit/
 - **Repo:** https://github.com/MrNtuli/DPermit
 
-Full steps: **[docs/DEPLOY.md](docs/DEPLOY.md)** and **[docs/GITHUB-SETUP.md](docs/GITHUB-SETUP.md)**.
+Full steps: **[docs/DEPLOY.md](docs/DEPLOY.md)**, **[docs/COMPLETE-SETUP-GUIDE.md](docs/COMPLETE-SETUP-GUIDE.md)**, and **[docs/MAJOR-PROJECT-SYSTEM-DESCRIPTION.md](docs/MAJOR-PROJECT-SYSTEM-DESCRIPTION.md)** (system overview + spec mapping + diagrams).
 
 ---
 
@@ -79,6 +79,8 @@ Open `http://localhost:8100/welcome`
 See [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) for the full 23-step demonstration flow.
 
 **Demo password:** `Demo@12345`
+
+Users can **change password** under Profile or use **Forgot password** on the login page. One-time setup: [docs/PASSWORD-RESET-SETUP.md](docs/PASSWORD-RESET-SETUP.md).
 
 ## User Roles
 

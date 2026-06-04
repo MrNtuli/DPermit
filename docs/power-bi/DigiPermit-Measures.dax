@@ -1,0 +1,32 @@
+// Paste into Power BI: Modeling → New measure (one at a time)
+// Use on a "Summary" page with Card visuals
+
+Total Permits = SUM(vw_permit_status_summary[permit_count])
+
+Active Permits =
+CALCULATE(
+    SUM(vw_permit_status_summary[permit_count]),
+    vw_permit_status_summary[status] = "active"
+)
+
+Expiring Soon Permits =
+CALCULATE(
+    SUM(vw_permit_status_summary[permit_count]),
+    vw_permit_status_summary[status] = "expiring_soon"
+)
+
+Expired Permits =
+CALCULATE(
+    SUM(vw_permit_status_summary[permit_count]),
+    vw_permit_status_summary[status] = "expired"
+)
+
+Expiring Within 90 Days = COUNTROWS(vw_expiring_permits)
+
+Total Verification Attempts = SUM(vw_verification_summary[attempt_count])
+
+Unresolved Alerts =
+CALCULATE(
+    SUM(vw_alert_summary[alert_count]),
+    vw_alert_summary[status] = "open"
+)

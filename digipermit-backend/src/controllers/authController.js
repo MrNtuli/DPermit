@@ -31,3 +31,39 @@ exports.getProfile = async (req, res, next) => {
     return success(res, profile);
   } catch (err) { next(err); }
 };
+
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return error(res, 'Email is required', 400);
+    const result = await authService.requestPasswordReset(email);
+    return success(res, result, result.message);
+  } catch (err) { next(err); }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { access_token, new_password } = req.body;
+    if (!access_token || !new_password) {
+      return error(res, 'Reset token and new password are required', 400);
+    }
+    await authService.completePasswordReset(access_token, new_password);
+    return success(res, null, 'Password updated. You can sign in with your new password.');
+  } catch (err) { next(err); }
+};
+
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { current_password, new_password } = req.body;
+    if (!current_password || !new_password) {
+      return error(res, 'Current and new password are required', 400);
+    }
+    await authService.changePassword(
+      req.user.id,
+      req.profile.email,
+      current_password,
+      new_password
+    );
+    return success(res, null, 'Password changed successfully');
+  } catch (err) { next(err); }
+};

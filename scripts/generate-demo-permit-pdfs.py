@@ -1,0 +1,285 @@
+"""
+Generate printable demo permit PDFs matching the in-app DigiPermit digital permit card.
+Output: docs/demo-permits/*.pdf and docs/pdf/DEMO-SAMPLE-PERMITS.pdf
+"""
+from __future__ import annotations
+
+import asyncio
+import base64
+import io
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+OUT_DIR = ROOT / "docs" / "demo-permits"
+COMBINED_PDF = ROOT / "docs" / "pdf" / "DEMO-SAMPLE-PERMITS.pdf"
+
+# Demo permits — same layout as app permit-document component
+DEMO_PERMITS = [
+    {
+        "file": "WP-2026-ACME-101-NEW-EMPLOYEE",
+        "permit_number": "WP-2026-ACME-101",
+        "permit_type": "General work visa",
+        "full_name": "Demo Employee One",
+        "nationality": "Nigerian",
+        "passport_number": "FN20260001",
+        "organisation": "Acme Global Pty Ltd",
+        "issue_date": "2025-01-01",
+        "expiry_date": "2027-12-31",
+        "status": "pending verification",
+        "qr_value": "DIGIPERMIT:WP-2026-ACME-101",
+        "rfid_tag": "RFID-ACME-101",
+        "record_id": "demo-new-employee-101",
+    },
+    {
+        "file": "WP-2024-ACME-001-JAMES-OKONKWO",
+        "permit_number": "WP-2024-ACME-001",
+        "permit_type": "General work visa",
+        "full_name": "James Okonkwo",
+        "nationality": "Nigerian",
+        "passport_number": "FN88291034",
+        "organisation": "Acme Global Pty Ltd",
+        "issue_date": "2024-01-15",
+        "expiry_date": "2026-06-15",
+        "status": "active",
+        "qr_value": "DIGIPERMIT:WP-2024-ACME-001",
+        "rfid_tag": "RFID-ACME-001",
+        "record_id": "c3000001-0000-4000-8000-000000000001",
+    },
+    {
+        "file": "WP-2024-ACME-002-PRIYA-SHARMA",
+        "permit_number": "WP-2024-ACME-002",
+        "permit_type": "Critical-skills work visa",
+        "full_name": "Priya Sharma",
+        "nationality": "Indian",
+        "passport_number": "FN77382910",
+        "organisation": "Acme Global Pty Ltd",
+        "issue_date": "2024-03-01",
+        "expiry_date": "2026-04-15",
+        "status": "expiring soon",
+        "qr_value": "DIGIPERMIT:WP-2024-ACME-002",
+        "rfid_tag": "RFID-ACME-002",
+        "record_id": "c3000001-0000-4000-8000-000000000002",
+    },
+    {
+        "file": "SV-2024-METRO-001-MARIA-SANTOS",
+        "permit_number": "SV-2024-METRO-001",
+        "permit_type": "Study visa",
+        "full_name": "Maria Santos",
+        "nationality": "Brazilian",
+        "passport_number": "FN66473829",
+        "organisation": "Metro University",
+        "issue_date": "2024-02-01",
+        "expiry_date": "2027-02-01",
+        "status": "active",
+        "qr_value": "DIGIPERMIT:SV-2024-METRO-001",
+        "rfid_tag": "RFID-METRO-001",
+        "record_id": "c3000001-0000-4000-8000-000000000005",
+    },
+]
+
+
+def mask_passport(p: str) -> str:
+    if not p or len(p) < 4:
+        return "****"
+    return p[:2] + "*" * max(len(p) - 4, 3) + p[-2:]
+
+
+def qr_data_url(value: str) -> str:
+    import qrcode
+
+    img = qrcode.make(value, box_size=8, border=2)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{b64}"
+
+
+def status_title(status: str) -> str:
+    return status.replace("_", " ").title()
+
+
+def permit_html(p: dict) -> str:
+    qr = qr_data_url(p["qr_value"])
+    passport = mask_passport(p["passport_number"])
+    return f"""
+    <div class="permit-doc">
+      <div class="permit-header">
+        <div class="brand">
+          <div class="shield">✓</div>
+          <div>
+            <h1>DigiPermit</h1>
+            <p>Compliance Monitoring Record</p>
+          </div>
+        </div>
+        <div class="doc-type">{p["permit_type"]}</div>
+      </div>
+      <div class="banner">NOT AN OFFICIAL GOVERNMENT IMMIGRATION PERMIT</div>
+      <div class="permit-body">
+        <div class="details">
+          <div class="field"><span>Full name</span><strong>{p["full_name"]}</strong></div>
+          <div class="field"><span>Nationality</span><strong>{p["nationality"]}</strong></div>
+          <div class="field"><span>Passport no.</span><strong>{passport}</strong></div>
+          <div class="field"><span>Permit no.</span><strong>{p["permit_number"]}</strong></div>
+          <div class="field"><span>Organisation</span><strong>{p["organisation"]}</strong></div>
+          <div class="field"><span>Issue date</span><strong>{p["issue_date"]}</strong></div>
+          <div class="field"><span>Expiry date</span><strong>{p["expiry_date"]}</strong></div>
+          <div class="field"><span>Status</span><strong class="status">{status_title(p["status"])}</strong></div>
+        </div>
+        <div class="qr-section">
+          <p class="scan-text">Scan to verify</p>
+          <div class="qr-box"><img src="{qr}" alt="QR code" width="200" height="200" /></div>
+          <p class="rfid">RFID: {p["rfid_tag"]}</p>
+        </div>
+      </div>
+      <div class="permit-footer">
+        <p>This document is generated by DigiPermit for compliance monitoring and verification purposes only.
+        Official visas and permits are issued only by the relevant government authority.</p>
+        <p class="doc-id">Record ID: {p["record_id"]}</p>
+      </div>
+    </div>
+    """
+
+
+PAGE_CSS = """
+@page { size: A4; margin: 20mm; }
+* { box-sizing: border-box; }
+body {
+  font-family: "Segoe UI", Calibri, Arial, sans-serif;
+  background: #f8fafc;
+  margin: 0;
+  padding: 16px;
+  color: #334155;
+}
+.page {
+  page-break-after: always;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 250mm;
+  padding-top: 12mm;
+}
+.page:last-child { page-break-after: auto; }
+.permit-doc {
+  width: 100%;
+  max-width: 720px;
+  background: #fff;
+  border: 2px solid #1f7a5a;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(15, 61, 46, 0.12);
+}
+.permit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #0f3d2e, #1f7a5a);
+  color: #fff;
+}
+.brand { display: flex; gap: 12px; align-items: center; }
+.shield {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: bold;
+}
+.brand h1 { margin: 0; font-size: 1.4rem; font-weight: 800; }
+.brand p { margin: 0; font-size: 0.75rem; opacity: 0.9; }
+.doc-type { font-size: 0.85rem; font-weight: 600; text-align: right; max-width: 160px; }
+.banner {
+  background: #fef3c7; color: #92400e; text-align: center;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; padding: 8px;
+}
+.permit-body { display: flex; flex-wrap: wrap; padding: 24px; gap: 24px; }
+.details { flex: 1; min-width: 260px; }
+.field { margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+.field span {
+  display: block; font-size: 0.7rem; color: #64748b;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.field strong { font-size: 1rem; color: #334155; }
+.field strong.status { color: #1f7a5a; }
+.qr-section { text-align: center; min-width: 220px; }
+.scan-text { font-size: 0.85rem; color: #1f7a5a; font-weight: 600; margin: 0 0 8px; }
+.qr-box {
+  display: inline-block; padding: 12px; background: #fff;
+  border-radius: 12px; border: 2px solid #1f7a5a;
+}
+.rfid { font-family: monospace; font-size: 0.7rem; color: #64748b; margin-top: 8px; }
+.permit-footer {
+  background: #f8fafc; padding: 16px 24px; font-size: 0.65rem;
+  color: #64748b; line-height: 1.5; border-top: 1px solid #e2e8f0;
+}
+.doc-id { margin: 8px 0 0; font-family: monospace; }
+.cover {
+  text-align: center; padding: 40px 20px; max-width: 600px; margin: 0 auto;
+}
+.cover h1 { color: #0f3d2e; font-size: 22pt; }
+.cover p { color: #64748b; line-height: 1.5; }
+"""
+
+
+def full_document(pages_html: str, title: str) -> str:
+    return f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><title>{title}</title>
+<style>{PAGE_CSS}</style></head><body>{pages_html}</body></html>"""
+
+
+async def html_to_pdf(html: str, dest: Path) -> None:
+    from playwright.async_api import async_playwright
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        page = await browser.new_page()
+        await page.set_content(html, wait_until="networkidle", timeout=60_000)
+        await page.pdf(
+            path=str(dest),
+            format="A4",
+            print_background=True,
+            margin={"top": "12mm", "bottom": "12mm", "left": "12mm", "right": "12mm"},
+        )
+        await browser.close()
+
+
+async def main() -> None:
+    try:
+        import qrcode  # noqa: F401
+    except ImportError:
+        import subprocess
+
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "qrcode[pil]", "playwright", "-q"])
+        subprocess.check_call([sys.executable, "-m", "playwright", "install", "chromium"])
+
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    COMBINED_PDF.parent.mkdir(parents=True, exist_ok=True)
+
+    print("Generating demo permit PDFs (DigiPermit card layout)...\n")
+
+    combined_pages = [
+        '<div class="page"><div class="cover">',
+        "<h1>DigiPermit — Sample Digital Permits</h1>",
+        "<p>Fictional compliance records for academic demonstration. "
+        "Each following page matches the in-app <strong>Digital Permit Document</strong> view. "
+        "QR codes scan in the live app (Verification → QR Scan).</p>",
+        "<p><strong>Password (all demos):</strong> Demo@12345</p>",
+        "</div></div>",
+    ]
+
+    for p in DEMO_PERMITS:
+        single_html = full_document(
+            f'<div class="page">{permit_html(p)}</div>',
+            p["permit_number"],
+        )
+        dest = OUT_DIR / f"{p['file']}.pdf"
+        await html_to_pdf(single_html, dest)
+        print(f"  OK  {dest.name}")
+        combined_pages.append(f'<div class="page">{permit_html(p)}</div>')
+
+    await html_to_pdf(full_document("".join(combined_pages), "All sample permits"), COMBINED_PDF)
+    print(f"  OK  {COMBINED_PDF.name} (all permits combined)")
+    print(f"\nSaved to: {OUT_DIR}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

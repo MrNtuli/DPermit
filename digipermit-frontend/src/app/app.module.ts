@@ -11,10 +11,20 @@ import { ShellComponent } from './layouts/shell/shell.component';
 import { SharedModule } from './shared/shared.module';
 import { LandingPage } from './pages/auth/landing.page';
 import { LoginPage } from './pages/auth/login.page';
+import { ForgotPasswordPage } from './pages/auth/forgot-password.page';
+import { ResetPasswordPage } from './pages/auth/reset-password.page';
 import { AccessDeniedPage } from './pages/auth/profile.page';
 
 @NgModule({
-  declarations: [AppComponent, ShellComponent, LandingPage, LoginPage, AccessDeniedPage],
+  declarations: [
+    AppComponent,
+    ShellComponent,
+    LandingPage,
+    LoginPage,
+    ForgotPasswordPage,
+    ResetPasswordPage,
+    AccessDeniedPage,
+  ],
   imports: [BrowserModule, HttpClientModule, ReactiveFormsModule, IonicModule.forRoot(), SharedModule, AppRoutingModule],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },

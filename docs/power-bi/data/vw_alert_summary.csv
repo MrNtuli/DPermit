@@ -1,0 +1,5 @@
+alert_type,priority,status,alert_count
+revoked_permit_scan,critical,open,1
+expiring_soon,high,open,1
+permit_expired,high,open,1
+expiring_soon,normal,open,1
